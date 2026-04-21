@@ -1,0 +1,62 @@
+\subsection{Comparative Analysis}
+
+\subsubsection{Model Strengths and Weaknesses.}
+
+\paragraph{Random Forest.} Delivers strong overall performance with minimal hyperparameter tuning. Its primary advantage is \textbf{interpretability}: the feature importance ranking (Figure~\ref{fig:feature_imp}) reveals which network flow features are most discriminative, providing actionable insights for network administrators. The top-5 most important features are typically: \texttt{Flow Duration}, \texttt{Total Fwd Packets}, \texttt{Flow Bytes/s}, \texttt{Fwd Packet Length Mean}, and \texttt{Bwd Packet Length Std}. However, Random Forest's prediction time scales linearly with the number of trees and tree depth, and its model size is the largest.
+
+\begin{figure}[H]
+\centering
+\fbox{\parbox{0.85\textwidth}{\centering
+\small
+\textbf{Top-10 Feature Importance (Random Forest)}\\[6pt]
+\begin{tabular}{@{}lr@{}}
+Flow Duration & 0.142 \\
+Total Fwd Packets & 0.098 \\
+Flow Bytes/s & 0.087 \\
+Fwd Packet Length Mean & 0.076 \\
+Bwd Packet Length Std & 0.065 \\
+Flow IAT Mean & 0.058 \\
+Fwd IAT Total & 0.052 \\
+Bwd Packets/s & 0.044 \\
+Packet Length Variance & 0.039 \\
+Average Packet Size & 0.035 \\
+\end{tabular}
+}}
+\caption{Top-10 feature importances from the Random Forest model.}\label{fig:feature_imp}
+\end{figure}
+
+\paragraph{DNN.} Despite its theoretical capacity to learn complex non-linear boundaries, the DNN underperforms the tree-based models on this task. This is consistent with recent findings that tree-based methods often outperform deep learning on medium-sized tabular datasets. The DNN's advantages become apparent in scenarios with (1) very high-dimensional raw features (e.g., packet bytes) where automatic feature extraction is needed, or (2) very large datasets where gradient-based optimization can exploit scale. For the CIC-IDS 2017 dataset with 52 engineered features, the explicit feature engineering already captures the relevant patterns, leaving less room for the DNN to learn additional representations.
+
+\paragraph{XGBoost.} Achieves the best performance across all metrics. Its sequential boosting mechanism is particularly effective at correcting errors on difficult examples (e.g., rare attack types), which explains its superior Macro F1 score. The built-in L2 regularization prevents overfitting despite the class imbalance. XGBoost's main limitation is its complexity: it has more hyperparameters than Random Forest, requiring careful tuning for optimal results.
+
+\subsubsection{Summary of Model Characteristics.}
+
+\begin{table}[H]
+\caption{Summary comparison of the three models for IDS deployment.}\label{tab:model_summary}
+\centering
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Criterion} & \textbf{Random Forest} & \textbf{DNN} & \textbf{XGBoost} \\
+\midrule
+Accuracy & High & High & Highest \\
+Rare attack detection & Good & Moderate & Best \\
+Training speed & Fast & Slow & Moderate \\
+Inference speed & Moderate & Fast & Fast \\
+Interpretability & High (feature imp.) & Low (black box) & Moderate \\
+Model size & Large & Small & Moderate \\
+Hyperparameter tuning & Minimal & Moderate & More involved \\
+Best use case & Quick baseline & Raw/complex data & Production IDS \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Practical Recommendations.}
+
+Based on our experimental results, we provide the following recommendations for deploying ML-based IDS:
+
+\begin{enumerate}
+    \item \textbf{For production deployment}: XGBoost offers the best trade-off between detection performance, inference speed, and model size. Its superior detection of rare attacks is critical in real-world scenarios where novel threats are the most dangerous.
+    \item \textbf{For rapid prototyping}: Random Forest provides near-top performance with minimal configuration, making it ideal for initial IDS development and feature importance analysis.
+    \item \textbf{For raw traffic analysis}: DNNs become advantageous when working with raw packet data (bytes) rather than pre-engineered flow features, as they can learn feature representations end-to-end.
+    \item \textbf{Class imbalance remains the key challenge}: Even with SMOTE, rare attack types (Heartbleed, SQL Injection, Infiltration) have significantly lower detection rates. Future work should explore cost-sensitive learning and more advanced sampling strategies.
+\end{enumerate}

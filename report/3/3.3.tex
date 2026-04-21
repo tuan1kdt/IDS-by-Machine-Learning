@@ -1,0 +1,121 @@
+\subsection{Machine Learning Models}
+\label{sec:models}
+
+We implement and evaluate three ML models, chosen to represent different algorithmic families: bagging (Random Forest), boosting (XGBoost), and deep learning (DNN). All implementations use Python with scikit-learn~\cite{ref_sklearn} and TensorFlow/Keras~\cite{ref_tensorflow}.
+
+\subsubsection{Model 1: Random Forest Classifier.}
+
+Random Forest~\cite{ref_rf_breiman} serves as our primary baseline due to its strong performance on tabular data, fast training, and built-in feature importance.
+
+\paragraph{Architecture.}
+\begin{itemize}
+    \item Number of trees: $B = 100$
+    \item Maximum depth: unrestricted (trees grow until leaves are pure or contain fewer than 2 samples)
+    \item Split criterion: Gini impurity
+    \item Features per split: $\sqrt{d}$ (where $d$ is total features)
+    \item Bootstrap sampling: enabled
+\end{itemize}
+
+\paragraph{Training procedure.}
+\begin{algorithm}[H]
+\caption{Random Forest Training for IDS}
+\label{alg:rf_train}
+\begin{algorithmic}[1]
+\Require Training set $\{(\mathbf{x}_i, y_i)\}_{i=1}^{n}$, number of trees $B$
+\Ensure Ensemble of $B$ trees $\{h_1, \ldots, h_B\}$
+\For{$b = 1$ \textbf{to} $B$}
+    \State Draw bootstrap sample $D_b$ of size $n$ from training data
+    \State Grow tree $h_b$ on $D_b$:
+    \State \quad At each node, select $\sqrt{d}$ random features
+    \State \quad Split on the feature/threshold minimizing Gini impurity
+    \State \quad Grow until leaf purity or minimum samples reached
+\EndFor
+\State \textbf{Prediction}: $\hat{y}(\mathbf{x}) = \text{majority\_vote}(h_1(\mathbf{x}), \ldots, h_B(\mathbf{x}))$
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Feature importance.}
+Random Forest computes feature importance as the mean decrease in impurity (MDI) across all trees. For feature $j$:
+\begin{equation}
+    \text{Importance}(j) = \frac{1}{B} \sum_{b=1}^{B} \sum_{t \in T_b} \frac{n_t}{n} \cdot \Delta \text{Gini}(t, j)
+\end{equation}
+where $T_b$ is the set of nodes in tree $b$ that split on feature $j$, $n_t/n$ is the fraction of samples reaching node $t$, and $\Delta\text{Gini}(t, j)$ is the impurity decrease at that split.
+
+\subsubsection{Model 2: Deep Neural Network (DNN).}
+
+The DNN model leverages deep learning to capture complex, non-linear relationships in the feature space~\cite{ref_dl_ids}.
+
+\paragraph{Architecture.}
+\begin{table}[H]
+\caption{DNN architecture for intrusion detection.}\label{tab:dnn_arch}
+\centering
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Layer} & \textbf{Type} & \textbf{Units} & \textbf{Details} \\
+\midrule
+Input & Dense & $d$ & Number of features \\
+Hidden 1 & Dense + ReLU & 128 & + BatchNorm + Dropout(0.3) \\
+Hidden 2 & Dense + ReLU & 64 & + BatchNorm + Dropout(0.3) \\
+Hidden 3 & Dense + ReLU & 32 & + BatchNorm + Dropout(0.2) \\
+Output & Dense + Softmax & $K$ & Number of classes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Training configuration.}
+\begin{itemize}
+    \item \textbf{Optimizer}: Adam~\cite{ref_adam} with learning rate $\eta = 0.001$
+    \item \textbf{Loss function}: Categorical cross-entropy
+    \item \textbf{Batch size}: 256
+    \item \textbf{Epochs}: 50 with early stopping (patience = 5, monitoring validation loss)
+    \item \textbf{Regularization}: Dropout~\cite{ref_dropout} (0.2--0.3) and Batch Normalization per hidden layer
+\end{itemize}
+
+\paragraph{Training procedure.}
+\begin{algorithm}[H]
+\caption{DNN Training for IDS}
+\label{alg:dnn_train}
+\begin{algorithmic}[1]
+\Require Scaled training data $\{(\mathbf{x}'_i, y_i)\}$, validation split 10\%
+\Ensure Trained DNN weights $\theta^*$
+\State Initialize weights $\theta$ randomly (He initialization)
+\For{epoch $= 1$ \textbf{to} 50}
+    \For{each mini-batch $\mathcal{B}$ of size 256}
+        \State Forward pass: $\hat{\mathbf{p}} = f_\theta(\mathbf{x}')$ with dropout active
+        \State Compute loss: $\mathcal{L} = -\frac{1}{|\mathcal{B}|}\sum_{i \in \mathcal{B}} \sum_{k} y_{ik} \log \hat{p}_{ik}$
+        \State Backward pass: compute $\nabla_\theta \mathcal{L}$
+        \State Update: $\theta \leftarrow \text{Adam}(\theta, \nabla_\theta \mathcal{L}, \eta=0.001)$
+    \EndFor
+    \State Evaluate on validation set
+    \If{validation loss has not improved for 5 epochs}
+        \State \textbf{break} (early stopping)
+    \EndIf
+\EndFor
+\State Restore weights from best validation epoch
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Model 3: XGBoost Classifier.}
+
+XGBoost~\cite{ref_xgboost} represents the gradient boosting family and is known for consistently winning machine learning competitions on structured data~\cite{ref_ensemble_ids}.
+
+\paragraph{Hyperparameters.}
+\begin{itemize}
+    \item Number of boosting rounds: 200
+    \item Maximum tree depth: 6
+    \item Learning rate (shrinkage): $\eta = 0.1$
+    \item Column subsampling per tree: 0.8
+    \item Row subsampling per tree: 0.8
+    \item Regularization: $\lambda = 1.0$ (L2), $\gamma = 0$ (minimum loss reduction)
+    \item Objective: \texttt{multi:softprob} (multi-class with probability output)
+    \item Early stopping rounds: 10
+\end{itemize}
+
+\paragraph{Key advantages for IDS.}
+XGBoost offers several properties particularly beneficial for intrusion detection:
+\begin{enumerate}
+    \item \textbf{Built-in handling of missing values}: Automatically learns the optimal direction for missing splits.
+    \item \textbf{Regularization}: L1 and L2 regularization on leaf weights prevents overfitting on imbalanced classes.
+    \item \textbf{Feature importance}: Provides gain-based and cover-based importance metrics.
+    \item \textbf{Computational efficiency}: Uses histogram-based split finding and cache-aware access patterns for fast training.
+\end{enumerate}

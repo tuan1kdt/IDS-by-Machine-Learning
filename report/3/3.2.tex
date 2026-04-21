@@ -1,0 +1,48 @@
+\subsection{Data Preprocessing Pipeline}
+\label{sec:preprocessing}
+
+Raw network flow data requires substantial preprocessing before it can be used to train ML models. Our preprocessing pipeline consists of the following steps.
+
+\subsubsection{Step 1 -- Data Loading and Cleaning.}
+
+The CIC-IDS 2017 dataset is distributed as multiple CSV files (one per day). We concatenate all files and apply the following cleaning operations:
+\begin{itemize}
+    \item \textbf{Remove invalid values}: Drop rows containing \texttt{NaN}, \texttt{Infinity}, or \texttt{-Infinity} values, which arise from division-by-zero in flow feature computation.
+    \item \textbf{Remove duplicates}: Eliminate exact duplicate rows that could bias the model.
+    \item \textbf{Strip whitespace}: Column names in the original CSV contain inconsistent spacing (e.g., ``\texttt{ Label}'' vs ``\texttt{Label}'').
+\end{itemize}
+
+\subsubsection{Step 2 -- Label Encoding.}
+
+The target variable (\texttt{Label}) contains string labels. We map these to integer codes for model training. For multi-class classification, we retain all original attack labels. For binary classification (used as a baseline comparison), we map all attack types to a single \texttt{ATTACK} class.
+
+\subsubsection{Step 3 -- Feature Selection.}
+
+From the original 78 features, we remove:
+\begin{itemize}
+    \item Non-informative features: \texttt{Flow ID}, \texttt{Source IP}, \texttt{Destination IP}, \texttt{Source Port}, \texttt{Timestamp} --- these are identifiers, not generalizable patterns.
+    \item Constant-value features: Features with zero variance across all samples provide no discriminative power.
+\end{itemize}
+
+We further apply correlation-based filtering~\cite{ref_feature_selection}: for pairs of features with Pearson correlation $|r| > 0.95$, we remove one of the pair to reduce multicollinearity. This typically reduces the feature set to approximately 50--60 features.
+
+\subsubsection{Step 4 -- Feature Scaling.}
+
+We apply \textbf{StandardScaler} normalization (zero mean, unit variance) to all numerical features:
+\begin{equation}
+    x'_j = \frac{x_j - \mu_j}{\sigma_j}
+\end{equation}
+where $\mu_j$ and $\sigma_j$ are the mean and standard deviation of feature $j$, computed \textit{only on the training set} to prevent data leakage. This normalization is particularly important for the DNN model, which is sensitive to feature scales.
+
+\subsubsection{Step 5 -- Handling Class Imbalance.}
+
+The dataset is heavily imbalanced (benign traffic dominates). We apply \textbf{SMOTE} (Synthetic Minority Over-sampling Technique)~\cite{ref_smote} on the training set only:
+\begin{itemize}
+    \item SMOTE generates synthetic samples for minority classes by interpolating between existing samples and their $k$-nearest neighbors in feature space.
+    \item This improves recall for rare attack types (e.g., Heartbleed, Infiltration) without duplicating existing data.
+    \item We do \textbf{not} apply SMOTE to the test set, ensuring evaluation reflects real-world class distribution.
+\end{itemize}
+
+\subsubsection{Step 6 -- Train/Test Split.}
+
+We split the preprocessed data into 80\% training and 20\% testing using stratified sampling to preserve the class distribution in both sets.

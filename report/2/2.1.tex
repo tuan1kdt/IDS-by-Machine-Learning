@@ -1,0 +1,31 @@
+\subsection{Intrusion Detection Systems}
+
+An Intrusion Detection System (IDS) is a software or hardware solution that monitors network traffic or system activities for malicious actions or policy violations~\cite{ref_ids_survey}. IDS can be categorized along two orthogonal dimensions:
+
+\subsubsection{By Data Source.}
+
+\paragraph{Network-based IDS (NIDS).}
+NIDS monitors network traffic at strategic points (e.g., switches, routers, firewalls) by capturing and analyzing packets in real time. It inspects packet headers and payloads to detect suspicious patterns. NIDS is non-intrusive --- it does not require installation on individual hosts --- making it suitable for monitoring entire network segments. Examples include Snort~\cite{ref_snort} and Suricata.
+
+\paragraph{Host-based IDS (HIDS).}
+HIDS operates on individual hosts, monitoring system calls, file system changes, log files, and application behavior. It can detect attacks that NIDS might miss, such as privilege escalation or insider threats. However, HIDS imposes overhead on the host and must be deployed on every machine to be protected.
+
+\subsubsection{By Detection Method.}
+
+\paragraph{Signature-based Detection.}
+This approach maintains a database of known attack signatures --- specific byte sequences, packet patterns, or behavioral rules. Incoming traffic is matched against these signatures. Signature-based detection achieves high accuracy and very low false positive rates for known attacks. However, it cannot detect:
+\begin{itemize}
+    \item \textit{Zero-day attacks}: Previously unknown vulnerabilities with no existing signature.
+    \item \textit{Polymorphic attacks}: Attacks that mutate their code to evade pattern matching.
+    \item \textit{Encrypted traffic}: Payloads hidden by encryption cannot be signature-matched.
+\end{itemize}
+
+\paragraph{Anomaly-based Detection.}
+Anomaly-based IDS establishes a baseline model of ``normal'' network behavior during a training phase, then flags any traffic that deviates significantly from this baseline~\cite{ref_anomaly_ids}. The key advantage is the ability to detect novel attacks without prior knowledge of their signatures. The main challenges are:
+\begin{itemize}
+    \item \textit{High false positive rates}: Legitimate but unusual traffic may be flagged as anomalous.
+    \item \textit{Training data quality}: The baseline must accurately represent normal behavior; contaminated training data leads to poor models.
+    \item \textit{Concept drift}: Normal network behavior changes over time, requiring periodic model retraining.
+\end{itemize}
+
+Machine learning techniques are naturally suited for anomaly-based detection, as they can learn complex decision boundaries from data and adapt to evolving traffic patterns.

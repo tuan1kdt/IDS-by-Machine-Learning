@@ -1,0 +1,11 @@
+\subsection{Problem Statement}
+
+\textbf{ML-based Network Intrusion Detection}: Given a dataset $D = \{(\mathbf{x}_1, y_1), (\mathbf{x}_2, y_2), \ldots, (\mathbf{x}_n, y_n)\}$ of labeled network flows, where each flow $\mathbf{x}_i \in \mathbb{R}^d$ is described by $d$ features (e.g., flow duration, packet counts, byte counts, flag distributions) and $y_i \in \{c_1, c_2, \ldots, c_K\}$ is its class label (\texttt{BENIGN} or an attack type), train a classifier $f: \mathbb{R}^d \to \{c_1, \ldots, c_K\}$ that:
+\begin{enumerate}
+    \item Maximizes \textbf{detection rate} (recall) for each attack category.
+    \item Minimizes \textbf{false positive rate} (misclassifying benign traffic as attacks).
+    \item Generalizes to unseen network flows not present in the training set.
+    \item Is computationally efficient enough for real-time or near-real-time deployment.
+\end{enumerate}
+
+This is a \textbf{multi-class classification} problem with significant class imbalance --- benign traffic typically dominates, while some attack types may represent less than 0.1\% of the total flows.

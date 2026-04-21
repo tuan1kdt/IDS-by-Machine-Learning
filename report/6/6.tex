@@ -1,0 +1,17 @@
+%=======================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+%=======================================================================
+
+This paper presented a comparative study of three machine learning approaches for network intrusion detection: Random Forest, Deep Neural Network, and XGBoost. We evaluated these models on the CIC-IDS 2017 dataset, a modern benchmark containing realistic network traffic with 15 classes of benign and attack traffic.
+
+Our key findings are:
+\begin{enumerate}
+    \item All three models achieve over 98\% accuracy, confirming the viability of ML-based intrusion detection on flow-level features.
+    \item \textbf{XGBoost} achieves the best overall performance (99.34\% accuracy, 94.21\% Macro F1), particularly excelling at detecting rare attack types through its sequential error-correction mechanism.
+    \item \textbf{Random Forest} provides a strong baseline with minimal tuning effort and valuable feature importance insights for network security analysts.
+    \item \textbf{DNN} underperforms tree-based methods on this structured dataset but offers advantages for raw traffic analysis and scales well to larger datasets.
+    \item \textbf{Class imbalance} remains the primary challenge --- rare attacks (Heartbleed, SQL Injection, Infiltration) have significantly lower detection rates despite SMOTE oversampling.
+\end{enumerate}
+
+Our methodology --- including careful data preprocessing, feature selection, and handling of class imbalance --- provides a reproducible pipeline for building ML-based IDS. The complete implementation is available as a Python codebase for further research and extension.

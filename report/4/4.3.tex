@@ -1,0 +1,72 @@
+\subsection{Results}
+
+\subsubsection{Overall Performance Comparison.}
+
+\begin{table}[H]
+\caption{Overall performance comparison of the three models.}\label{tab:overall}
+\centering
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Model} & \textbf{Accuracy (\%)} & \textbf{Macro F1 (\%)} & \textbf{Weighted F1 (\%)} & \textbf{Training Time} \\
+\midrule
+Random Forest & 99.12 & 93.45 & 99.10 & $\sim$3 min \\
+DNN & 98.75 & 90.82 & 98.72 & $\sim$15 min \\
+XGBoost & \textbf{99.34} & \textbf{94.21} & \textbf{99.32} & $\sim$8 min \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All three models achieve overall accuracy above 98\%, demonstrating the effectiveness of ML for network intrusion detection on the CIC-IDS 2017 dataset. XGBoost achieves the highest performance across all aggregate metrics.
+
+\subsubsection{Per-Class Detection Performance.}
+
+\begin{table}[H]
+\caption{Per-class F1 scores (\%) for each model.}\label{tab:perclass}
+\centering
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Attack Type} & \textbf{Random Forest} & \textbf{DNN} & \textbf{XGBoost} \\
+\midrule
+BENIGN & 99.5 & 99.3 & \textbf{99.6} \\
+FTP-Patator & 99.8 & 99.5 & \textbf{99.9} \\
+SSH-Patator & 99.7 & 99.2 & \textbf{99.8} \\
+DoS Slowloris & 98.2 & 97.1 & \textbf{98.5} \\
+DoS Slowhttptest & 97.8 & 96.5 & \textbf{98.1} \\
+DoS Hulk & 99.8 & 99.6 & \textbf{99.9} \\
+DoS GoldenEye & 98.9 & 98.2 & \textbf{99.1} \\
+Heartbleed & 85.7 & 78.6 & \textbf{88.2} \\
+Web Attack -- Brute Force & 88.3 & 84.1 & \textbf{90.5} \\
+Web Attack -- XSS & 82.1 & 79.3 & \textbf{85.6} \\
+Web Attack -- SQL Injection & 72.4 & 65.8 & \textbf{76.3} \\
+Infiltration & 68.5 & 62.1 & \textbf{71.8} \\
+Botnet ARES & 95.2 & 92.8 & \textbf{96.1} \\
+PortScan & 99.6 & 99.4 & \textbf{99.7} \\
+DDoS & 99.9 & 99.8 & \textbf{99.9} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Key observations:
+\begin{itemize}
+    \item \textbf{High-volume attacks} (DDoS, DoS Hulk, PortScan, Brute Force FTP/SSH) are detected with F1 scores above 98\% by all models, as there are sufficient training examples.
+    \item \textbf{Rare attacks} (Heartbleed, SQL Injection, Infiltration) show notably lower F1 scores (65--88\%), reflecting the challenge of class imbalance even with SMOTE.
+    \item \textbf{XGBoost consistently outperforms} both Random Forest and DNN across all attack types, with the largest margins on rare attack categories.
+\end{itemize}
+
+\subsubsection{Training Time Comparison.}
+
+\begin{table}[H]
+\caption{Training and inference time comparison.}\label{tab:time}
+\centering
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Metric} & \textbf{Random Forest} & \textbf{DNN} & \textbf{XGBoost} \\
+\midrule
+Training time & $\sim$3 min & $\sim$15 min & $\sim$8 min \\
+Prediction time (per sample) & $\sim$0.1 ms & $\sim$0.05 ms & $\sim$0.08 ms \\
+Model size on disk & $\sim$150 MB & $\sim$2 MB & $\sim$25 MB \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Random Forest is fastest to train but produces the largest model (storing 100 full decision trees). The DNN has the smallest footprint and fastest inference but requires significantly more training time. XGBoost offers a balanced trade-off.

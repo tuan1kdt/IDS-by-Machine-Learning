@@ -1,0 +1,27 @@
+%=======================================================================
+\section{Introduction}
+\label{sec:intro}
+%=======================================================================
+
+The rapid growth of internet-connected devices and the increasing sophistication of cyber threats have made network security one of the most critical challenges in modern computing. Organizations face a constant barrage of attacks --- from Distributed Denial of Service (DDoS) and brute force intrusions to advanced malware and botnet infiltrations --- that can cause severe financial losses, data breaches, and service disruptions. According to industry reports, cybercrime damages are projected to reach trillions of dollars annually, underscoring the urgent need for robust detection mechanisms.
+
+\textbf{Intrusion Detection Systems (IDS)}~\cite{ref_ids_survey} serve as a critical line of defense by monitoring network traffic and system activities for signs of malicious behavior. Traditional IDS can be broadly classified into two categories:
+\begin{itemize}
+    \item \textbf{Signature-based IDS} (e.g., Snort~\cite{ref_snort}): These systems maintain a database of known attack patterns and match incoming traffic against these signatures. While highly accurate for known threats, they are fundamentally unable to detect novel (zero-day) attacks.
+    \item \textbf{Anomaly-based IDS}~\cite{ref_anomaly_ids}: These systems build a model of ``normal'' network behavior and flag deviations. They can potentially detect unknown attacks but traditionally suffer from high false positive rates.
+\end{itemize}
+
+The limitations of signature-based approaches --- particularly their inability to adapt to previously unseen attack patterns --- have motivated the adoption of \textbf{machine learning (ML)} techniques for intrusion detection~\cite{ref_ml_ids_review}. ML-based IDS can automatically learn complex patterns from labeled network traffic data, generalize to detect variants of known attacks, and potentially identify entirely new attack vectors through anomaly detection.
+
+Recent advances in deep learning have further expanded the capabilities of ML-based IDS, enabling the extraction of hierarchical features from raw network data and achieving state-of-the-art detection performance~\cite{ref_dl_ids}. However, the choice of algorithm, feature engineering strategy, and dataset significantly impacts detection accuracy, computational cost, and real-world deployability.
+
+In this paper, we present a comparative study of three representative ML algorithms for network intrusion detection:
+\begin{enumerate}
+    \item \textbf{Random Forest}~\cite{ref_rf_breiman}: An ensemble of decision trees that provides high accuracy, interpretability through feature importance, and robustness against overfitting.
+    \item \textbf{Deep Neural Network (DNN)}~\cite{ref_deep_learning}: A multi-layer feedforward network trained with backpropagation, capable of learning complex non-linear decision boundaries from high-dimensional feature spaces.
+    \item \textbf{XGBoost}~\cite{ref_xgboost}: An optimized gradient boosting framework that builds trees sequentially, with each tree correcting errors of previous ones, achieving strong performance on structured/tabular data.
+\end{enumerate}
+
+We evaluate these models on the \textbf{CIC-IDS 2017} dataset~\cite{ref_cicids2017}, a modern benchmark that addresses many limitations of older datasets like KDD Cup 99~\cite{ref_kdd99}. CIC-IDS 2017 contains realistic network traffic captured over five days, with labeled attacks including DDoS, brute force (FTP and SSH), web attacks, infiltration, and botnet activity.
+
+The remainder of this paper is organized as follows: Section~\ref{sec:prelim} provides background on IDS and machine learning fundamentals. Section~\ref{sec:methodology} details our proposed methodology including data preprocessing, feature engineering, and model architectures. Section~\ref{sec:experiments} presents experimental results and comparative analysis. Section~\ref{sec:discussion} discusses findings and future directions. Section~\ref{sec:conclusion} concludes the paper.

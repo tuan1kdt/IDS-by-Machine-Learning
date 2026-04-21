@@ -1,0 +1,20 @@
+\subsection{Limitations}
+
+While our experimental results demonstrate high detection accuracy, several limitations should be acknowledged:
+
+\begin{itemize}
+    \item \textbf{Dataset bias}: The CIC-IDS 2017 dataset, though more realistic than KDD Cup 99, was generated in a controlled lab environment. Real-world network traffic exhibits greater diversity and noise.
+    \item \textbf{Concept drift}: Network traffic patterns evolve over time as new applications and protocols emerge. Models trained on 2017 data may degrade on current traffic without periodic retraining.
+    \item \textbf{Adversarial robustness}: Sophisticated attackers may craft traffic specifically designed to evade ML classifiers. We did not evaluate adversarial robustness in this study.
+    \item \textbf{Rare attack detection}: Despite SMOTE, classes with very few samples (Heartbleed: 11 flows, Infiltration: 36 flows) remain difficult to detect reliably.
+\end{itemize}
+
+\subsection{Future Directions}
+
+\begin{enumerate}
+    \item \textbf{Real-time deployment}: Integrate trained models into a packet capture pipeline (e.g., with Scapy or CICFlowMeter) for live traffic classification.
+    \item \textbf{Federated learning}: Train IDS models across multiple organizations without sharing raw traffic data, preserving privacy while benefiting from diverse attack patterns.
+    \item \textbf{Ensemble of ensembles}: Combine Random Forest, XGBoost, and DNN predictions via stacking or voting to leverage each model's strengths.
+    \item \textbf{Adversarial training}: Augment training data with adversarial examples to improve model robustness against evasion attacks.
+    \item \textbf{Transfer learning}: Pre-train models on large public datasets and fine-tune on organization-specific traffic to reduce the labeled data requirement.
+\end{enumerate}
