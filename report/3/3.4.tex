@@ -1,0 +1,83 @@
+\subsection{Model Design}
+\label{sec:model-design}
+
+Section~\ref{sec:bg-ml} introduced the three candidate learners at a conceptual level. We now specify their concrete architectures and the hyperparameter ranges used in the empirical evaluation of Section~\ref{sec:experiments}. All three models consume the same $88$-dimensional feature vector produced by the preprocessing stage and emit a categorical prediction over $C$ classes.
+
+\subsubsection*{Random Forest (RF).}
+We use the scikit-learn implementation with the following configuration, selected via stratified 5-fold cross-validation on the training split:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Hyperparameter} & \textbf{Value / Range} \\
+\midrule
+\texttt{n\_estimators}          & $200$ (searched in $\{100, 200, 400\}$) \\
+\texttt{max\_depth}             & $\textsc{None}$ (unrestricted; searched in $\{20, 40, \textsc{None}\}$) \\
+\texttt{min\_samples\_split}    & $2$ \\
+\texttt{min\_samples\_leaf}     & $1$ \\
+\texttt{max\_features}          & $\sqrt{d}$ (Breiman default) \\
+\texttt{class\_weight}          & \texttt{balanced\_subsample} \\
+\texttt{bootstrap}              & \texttt{True} \\
+\texttt{criterion}              & \texttt{gini} \\
+\texttt{n\_jobs}                & $-1$ (all cores for training; serialised prediction for latency determinism) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The \texttt{balanced\_subsample} class weighting re-weights the loss at every bootstrap sample so that minority classes contribute proportionally; it is more stable than global \texttt{balanced} weighting under SMOTE because it does not double-count the synthetic examples.
+
+\subsubsection*{Gradient-Boosted Trees (XGBoost).}
+The second model is the \texttt{xgboost} 2.0 implementation with the multiclass \texttt{multi:softprob} objective, which produces a calibrated probability vector suitable for threshold tuning at deployment time:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Hyperparameter} & \textbf{Value / Range} \\
+\midrule
+\texttt{objective}      & \texttt{multi:softprob} \\
+\texttt{num\_class}     & $C$ \\
+\texttt{eta}            & $0.1$ (searched in $\{0.05, 0.1, 0.2\}$) \\
+\texttt{max\_depth}     & $8$ (searched in $\{6, 8, 10\}$) \\
+\texttt{min\_child\_weight} & $1$ \\
+\texttt{subsample}      & $0.8$ \\
+\texttt{colsample\_bytree} & $0.8$ \\
+\texttt{lambda}         & $1.0$ (L2 regularisation) \\
+\texttt{alpha}          & $0.0$ (L1 regularisation) \\
+\texttt{num\_boost\_round} & $500$ with early stopping on validation macro-$F_1$ (patience $20$) \\
+\texttt{tree\_method}   & \texttt{hist} (histogram-based split finding) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Because XGBoost does not expose a direct \texttt{class\_weight='balanced'} API for multiclass, we re-weight each example by $w_i = N / (C \cdot n_{y_i})$ where $n_c$ is the training count of class $c$. This is numerically equivalent to inverse-frequency balancing and is applied \emph{in addition to} the SMOTE-oversampled training set.
+
+\subsubsection*{Deep Neural Network (DNN).}
+The DNN is a compact feed-forward architecture implemented in TensorFlow/Keras. It is intentionally small to keep the serialised model under the $512\,\text{MB}$ memory budget and to achieve sub-millisecond per-flow CPU inference:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Layer} & \textbf{Specification} \\
+\midrule
+Input               & $\mathbb{R}^{88}$ \\
+Dense $1$           & $128$ units, ReLU activation, L2 reg.\ $10^{-5}$ \\
+Dropout $1$         & rate $0.3$ \\
+Dense $2$           & $64$ units, ReLU activation, L2 reg.\ $10^{-5}$ \\
+Dropout $2$         & rate $0.3$ \\
+Dense $3$           & $32$ units, ReLU activation \\
+Output              & $C$ units, softmax activation \\
+\midrule
+\textbf{Training hyperparameters} & \\
+Optimiser           & Adam, learning rate $10^{-3}$, $\beta_1{=}0.9$, $\beta_2{=}0.999$ \\
+Loss                & Focal categorical cross-entropy~\cite{ref_focal}, $\gamma = 2.0$ \\
+Batch size          & $512$ \\
+Epochs              & $50$ with early stopping on validation macro-$F_1$ (patience $5$) \\
+Weight init         & He-normal on all Dense layers \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The focal loss is preferred over plain categorical cross-entropy because, after SMOTE oversampling, the remaining difficulty is dominated by \emph{hard} minority examples (the focal $(1-p_t)^\gamma$ modulator concentrates gradient signal there) rather than by sheer class frequency~\cite{ref_focal}.
+
+\subsubsection*{Why Three Models?}
+The three learners span the classical-to-deep spectrum by design. RF offers a strong non-parametric baseline with essentially no tuning. XGBoost is the empirical champion on tabular data and provides the best-calibrated probabilities for threshold tuning. The DNN serves a dual purpose: (i)~it demonstrates that a lightweight deep model can match tree-based accuracy at comparable or lower inference cost, and (ii)~it provides a natural substrate for the future extensions discussed in Section~\ref{sec:inference} and in our concluding section, including online fine-tuning and representation transfer to related detection tasks.

@@ -1,0 +1,36 @@
+\subsection{Machine Learning Foundations}
+\label{sec:bg-ml}
+
+\subsubsection*{The Multiclass Classification Problem.}
+Given a labelled training set $\mathcal{D} = \{(\mathbf{x}_i, y_i)\}_{i=1}^{N}$ with $\mathbf{x}_i \in \mathbb{R}^d$ and $y_i \in \{1, \ldots, C\}$, the goal is to learn a classifier $f_\theta : \mathbb{R}^d \to \{1, \ldots, C\}$ that minimizes the expected risk on the underlying data distribution. For parametric models the prediction is usually factored through a score vector $\mathbf{s}(\mathbf{x}) \in \mathbb{R}^C$ and a softmax:
+\begin{equation}
+    p(y=c \mid \mathbf{x}) = \frac{\exp(s_c(\mathbf{x}))}{\sum_{c'=1}^{C} \exp(s_{c'}(\mathbf{x}))}, \qquad \hat{y}(\mathbf{x}) = \arg\max_{c} \, p(y=c \mid \mathbf{x}).
+\end{equation}
+Training is typically performed by minimizing the categorical cross-entropy
+\begin{equation}
+    \mathcal{L}_{\text{CE}}(\theta) = -\frac{1}{N} \sum_{i=1}^{N} \sum_{c=1}^{C} \mathbf{1}[y_i = c] \log p_\theta(y=c \mid \mathbf{x}_i),
+\end{equation}
+possibly with a cost-sensitive weight $w_c$ for class $c$ or a focal modulation factor for hard examples, as discussed in Section~\ref{sec:bg-preproc}.
+
+\subsubsection*{Candidate Model Families.}
+We consider three widely used learners whose inductive biases span the classical/deep spectrum:
+\begin{description}[leftmargin=1.2em,itemsep=2pt,topsep=2pt]
+    \item[Random Forest (RF)]~\cite{ref_rf} is an ensemble of decision trees trained on bootstrap samples with feature subsampling at each split. It is robust to outliers, invariant to monotonic feature rescaling, and has well-understood probability calibration.
+    \item[Gradient-Boosted Trees (XGBoost)]~\cite{ref_xgboost} builds an additive ensemble of shallow trees, each fitted to the pseudo-residuals of the previous ensemble. It consistently delivers state-of-the-art results on tabular data and supports regularized objectives that help with imbalanced targets.
+    \item[Deep Neural Network (DNN)] --- a feed-forward multi-layer perceptron with ReLU activations, dropout regularization, and a softmax output layer. We implement it in TensorFlow~\cite{ref_tensorflow} and, as a universal function approximator, it provides a flexible deep-learning baseline for comparison.
+\end{description}
+
+\subsubsection*{Train / Validation / Test Split.}
+To obtain reliable estimates of generalization we split $\mathcal{D}$ into three disjoint subsets. A common convention---adopted in this paper---is a \textbf{70/15/15} stratified split: 70\% for training, 15\% for validation (hyperparameter tuning, early stopping), and 15\% for the held-out test set (reported once, at the end). The split is \emph{stratified} by class so that each subset retains the original label proportions. For hyperparameter search we additionally use \emph{stratified $k$-fold cross-validation} ($k=5$) within the training split, which reduces the variance of the estimate at the cost of $k$ times more compute.
+
+\subsubsection*{Evaluation Metrics.}
+On a severely imbalanced multiclass problem, no single scalar captures all aspects of classifier quality. We report the following, all derived from the $C \times C$ confusion matrix $\mathbf{M}$, where $M_{ij}$ counts test examples of true class $i$ predicted as class $j$:
+
+\begin{align}
+\text{Accuracy} &= \frac{\sum_{c=1}^{C} M_{cc}}{\sum_{i,j} M_{ij}}, \\
+\text{Precision}_c &= \frac{M_{cc}}{\sum_{i} M_{ic}}, \qquad \text{Recall}_c = \frac{M_{cc}}{\sum_{j} M_{cj}}, \\
+F_{1,c} &= \frac{2 \cdot \text{Precision}_c \cdot \text{Recall}_c}{\text{Precision}_c + \text{Recall}_c}, \\
+\text{Macro-}F_1 &= \frac{1}{C} \sum_{c=1}^{C} F_{1,c}, \\
+\text{Weighted-}F_1 &= \frac{1}{N} \sum_{c=1}^{C} n_c \cdot F_{1,c},
+\end{align}
+where $n_c$ is the number of test examples in class $c$. Accuracy is misleading under imbalance---a trivial \texttt{BENIGN}-only classifier achieves $\approx 80\%$ accuracy on CIC-IDS2017---so we treat \textbf{macro-$F_1$} as the primary model-selection metric, which weights every class equally regardless of its support. We additionally report the per-class \textbf{Precision--Recall AUC (PR-AUC)}, which is more informative than ROC-AUC when the positive class is rare: it summarizes the trade-off between precision and recall across all decision thresholds and is therefore a faithful measure of detector quality for under-represented attack types such as \texttt{Heartbleed} and \texttt{Infiltration}~\cite{ref_prauc}.

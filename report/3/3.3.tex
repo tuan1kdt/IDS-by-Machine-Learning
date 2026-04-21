@@ -1,121 +1,42 @@
-\subsection{Machine Learning Models}
-\label{sec:models}
+\subsection{Feature Engineering}
+\label{sec:feat-eng}
 
-We implement and evaluate three ML models, chosen to represent different algorithmic families: bagging (Random Forest), boosting (XGBoost), and deep learning (DNN). All implementations use Python with scikit-learn~\cite{ref_sklearn} and TensorFlow/Keras~\cite{ref_tensorflow}.
+Section~\ref{sec:bg-preproc} drew a distinction between \emph{feature extraction}---the \textsc{CICFlowMeter} step that turns raw PCAPs into 78 tabular statistics---and \emph{feature generation}, which derives new variables from the already-extracted ones to expose relationships that the base features do not surface directly. This subsection describes the small set of engineered features we compute on top of the stock 78 and the rationale for each.
 
-\subsubsection{Model 1: Random Forest Classifier.}
+Our engineering is guided by two principles. First, we only introduce features whose computation is $O(1)$ per flow given the existing columns, so that the online preprocessing stage (Figure~\ref{fig:pipeline}) incurs negligible additional latency. Second, every engineered feature is stateless with respect to the flow stream; no rolling window or cross-flow aggregation is required, preserving the per-flow independence assumption of the downstream classifier.
 
-Random Forest~\cite{ref_rf_breiman} serves as our primary baseline due to its strong performance on tabular data, fast training, and built-in feature importance.
+\subsubsection*{Directional Ratios.}
+CIC-IDS2017 provides separate forward and backward statistics but does not surface their \emph{ratios} directly. Several attack classes are characterised more by directional asymmetry than by absolute magnitude. For example, a DDoS SYN flood produces many forward packets with almost no backward response; an SSH brute-force loop produces roughly equal forward/backward traffic but with atypical payload ratios. We therefore add:
+\begin{align}
+    r_{\text{pkt}}  &= \frac{\texttt{Bwd Packets} + \varepsilon}{\texttt{Fwd Packets} + \varepsilon}, \\
+    r_{\text{byte}} &= \frac{\texttt{Bwd Bytes}\,  + \varepsilon}{\texttt{Fwd Bytes}\,  + \varepsilon}, \\
+    r_{\text{size}} &= \frac{\texttt{Bwd Packet Length Mean} + \varepsilon}{\texttt{Fwd Packet Length Mean} + \varepsilon},
+\end{align}
+with $\varepsilon = 10^{-6}$ to guard against division by zero on one-sided flows.
 
-\paragraph{Architecture.}
-\begin{itemize}
-    \item Number of trees: $B = 100$
-    \item Maximum depth: unrestricted (trees grow until leaves are pure or contain fewer than 2 samples)
-    \item Split criterion: Gini impurity
-    \item Features per split: $\sqrt{d}$ (where $d$ is total features)
-    \item Bootstrap sampling: enabled
-\end{itemize}
-
-\paragraph{Training procedure.}
-\begin{algorithm}[H]
-\caption{Random Forest Training for IDS}
-\label{alg:rf_train}
-\begin{algorithmic}[1]
-\Require Training set $\{(\mathbf{x}_i, y_i)\}_{i=1}^{n}$, number of trees $B$
-\Ensure Ensemble of $B$ trees $\{h_1, \ldots, h_B\}$
-\For{$b = 1$ \textbf{to} $B$}
-    \State Draw bootstrap sample $D_b$ of size $n$ from training data
-    \State Grow tree $h_b$ on $D_b$:
-    \State \quad At each node, select $\sqrt{d}$ random features
-    \State \quad Split on the feature/threshold minimizing Gini impurity
-    \State \quad Grow until leaf purity or minimum samples reached
-\EndFor
-\State \textbf{Prediction}: $\hat{y}(\mathbf{x}) = \text{majority\_vote}(h_1(\mathbf{x}), \ldots, h_B(\mathbf{x}))$
-\end{algorithmic}
-\end{algorithm}
-
-\paragraph{Feature importance.}
-Random Forest computes feature importance as the mean decrease in impurity (MDI) across all trees. For feature $j$:
+\subsubsection*{Log-Transforms of Heavy-Tailed Columns.}
+A handful of CICFlowMeter columns span many orders of magnitude---\texttt{Flow Duration}, \texttt{Flow Bytes/s}, \texttt{Flow Packets/s}, \texttt{Total Length of Fwd/Bwd Packets}---and their raw distribution is extremely right-skewed. Tree-based learners are unaffected by monotone transforms, but the DNN benefits significantly from a bounded-tail input. We therefore append $\log_{10}(1 + x)$ variants of these five columns rather than replacing the originals, leaving the learners free to pick whichever scale is more informative:
 \begin{equation}
-    \text{Importance}(j) = \frac{1}{B} \sum_{b=1}^{B} \sum_{t \in T_b} \frac{n_t}{n} \cdot \Delta \text{Gini}(t, j)
+    x' = \log_{10}(1 + x), \quad x \in \bigl\{\texttt{Flow Duration}, \texttt{Flow Bytes/s}, \texttt{Flow Packets/s}, \texttt{Tot Fwd Bytes}, \texttt{Tot Bwd Bytes}\bigr\}.
 \end{equation}
-where $T_b$ is the set of nodes in tree $b$ that split on feature $j$, $n_t/n$ is the fraction of samples reaching node $t$, and $\Delta\text{Gini}(t, j)$ is the impurity decrease at that split.
 
-\subsubsection{Model 2: Deep Neural Network (DNN).}
+\subsubsection*{Binary Indicators.}
+Two degenerate configurations are disproportionately informative about the attack class and deserve their own binary features:
+\begin{description}[leftmargin=1.2em,itemsep=2pt,topsep=2pt]
+    \item[\texttt{HasZeroBwd}.] Set to $1$ when \texttt{Bwd Packets} $= 0$. Strongly correlated with reconnaissance (\texttt{PortScan}) and one-way floods.
+    \item[\texttt{IsShortFlow}.] Set to $1$ when the flow contains fewer than four packets in total. Fast SYN scans and half-open TCP probes fall in this bucket; legitimate short flows (DNS queries) also fall here but with characteristic directional balance, so the combination with $r_{\text{pkt}}$ remains discriminative.
+\end{description}
 
-The DNN model leverages deep learning to capture complex, non-linear relationships in the feature space~\cite{ref_dl_ids}.
+\subsubsection*{Entropy of Packet-Length Distribution.}
+The standard deviation of packet length, already present in the base features, captures spread but not \emph{structure}. Traffic dominated by a few repeated payload sizes---typical of beaconing C2 channels---has low empirical entropy, whereas bulk transfers and legitimate HTTP traffic exhibit higher entropy. We approximate the Shannon entropy of the packet-length histogram using the min, max, and standard-deviation columns and a coarse $K$-bin quantisation ($K = 10$):
+\begin{equation}
+    H(\mathbf{x}) \approx -\sum_{k=1}^{K} \hat{p}_k \log_2 \hat{p}_k,
+\end{equation}
+where $\hat{p}_k$ is the Gaussian-approximated bin probability derived from the per-flow mean and standard deviation. The approximation is crude but cheap and, in our ablation experiments (Section~\ref{sec:experiments}), contributes a modest but consistent lift on the \texttt{Bot} class.
 
-\paragraph{Architecture.}
-\begin{table}[H]
-\caption{DNN architecture for intrusion detection.}\label{tab:dnn_arch}
-\centering
-\begin{tabular}{@{}llll@{}}
-\toprule
-\textbf{Layer} & \textbf{Type} & \textbf{Units} & \textbf{Details} \\
-\midrule
-Input & Dense & $d$ & Number of features \\
-Hidden 1 & Dense + ReLU & 128 & + BatchNorm + Dropout(0.3) \\
-Hidden 2 & Dense + ReLU & 64 & + BatchNorm + Dropout(0.3) \\
-Hidden 3 & Dense + ReLU & 32 & + BatchNorm + Dropout(0.2) \\
-Output & Dense + Softmax & $K$ & Number of classes \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\paragraph{Training configuration.}
-\begin{itemize}
-    \item \textbf{Optimizer}: Adam~\cite{ref_adam} with learning rate $\eta = 0.001$
-    \item \textbf{Loss function}: Categorical cross-entropy
-    \item \textbf{Batch size}: 256
-    \item \textbf{Epochs}: 50 with early stopping (patience = 5, monitoring validation loss)
-    \item \textbf{Regularization}: Dropout~\cite{ref_dropout} (0.2--0.3) and Batch Normalization per hidden layer
-\end{itemize}
-
-\paragraph{Training procedure.}
-\begin{algorithm}[H]
-\caption{DNN Training for IDS}
-\label{alg:dnn_train}
-\begin{algorithmic}[1]
-\Require Scaled training data $\{(\mathbf{x}'_i, y_i)\}$, validation split 10\%
-\Ensure Trained DNN weights $\theta^*$
-\State Initialize weights $\theta$ randomly (He initialization)
-\For{epoch $= 1$ \textbf{to} 50}
-    \For{each mini-batch $\mathcal{B}$ of size 256}
-        \State Forward pass: $\hat{\mathbf{p}} = f_\theta(\mathbf{x}')$ with dropout active
-        \State Compute loss: $\mathcal{L} = -\frac{1}{|\mathcal{B}|}\sum_{i \in \mathcal{B}} \sum_{k} y_{ik} \log \hat{p}_{ik}$
-        \State Backward pass: compute $\nabla_\theta \mathcal{L}$
-        \State Update: $\theta \leftarrow \text{Adam}(\theta, \nabla_\theta \mathcal{L}, \eta=0.001)$
-    \EndFor
-    \State Evaluate on validation set
-    \If{validation loss has not improved for 5 epochs}
-        \State \textbf{break} (early stopping)
-    \EndIf
-\EndFor
-\State Restore weights from best validation epoch
-\end{algorithmic}
-\end{algorithm}
-
-\subsubsection{Model 3: XGBoost Classifier.}
-
-XGBoost~\cite{ref_xgboost} represents the gradient boosting family and is known for consistently winning machine learning competitions on structured data~\cite{ref_ensemble_ids}.
-
-\paragraph{Hyperparameters.}
-\begin{itemize}
-    \item Number of boosting rounds: 200
-    \item Maximum tree depth: 6
-    \item Learning rate (shrinkage): $\eta = 0.1$
-    \item Column subsampling per tree: 0.8
-    \item Row subsampling per tree: 0.8
-    \item Regularization: $\lambda = 1.0$ (L2), $\gamma = 0$ (minimum loss reduction)
-    \item Objective: \texttt{multi:softprob} (multi-class with probability output)
-    \item Early stopping rounds: 10
-\end{itemize}
-
-\paragraph{Key advantages for IDS.}
-XGBoost offers several properties particularly beneficial for intrusion detection:
-\begin{enumerate}
-    \item \textbf{Built-in handling of missing values}: Automatically learns the optimal direction for missing splits.
-    \item \textbf{Regularization}: L1 and L2 regularization on leaf weights prevents overfitting on imbalanced classes.
-    \item \textbf{Feature importance}: Provides gain-based and cover-based importance metrics.
-    \item \textbf{Computational efficiency}: Uses histogram-based split finding and cache-aware access patterns for fast training.
-\end{enumerate}
+\subsubsection*{Summary.}
+The final feature vector consumed by the learner is therefore
+\[
+    \mathbf{x} \in \mathbb{R}^{78 + 10} = \mathbb{R}^{88},
+\]
+where the $10$ engineered columns comprise the three ratios $(r_{\text{pkt}}, r_{\text{byte}}, r_{\text{size}})$, the five log-transformed columns, and the two binary indicators plus the entropy approximation. All engineered features are computed \emph{before} the \texttt{RobustScaler} is applied, so scaling statistics are consistent between training and serving.

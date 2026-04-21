@@ -1,4 +1,4 @@
-% Final Report: AI-Powered Intrusion Detection System using Machine Learning
+% Final Report: AI-Powered Intrusion Detection System (IDS) using Machine Learning
 % LLNCS format - Springer
 \documentclass[runningheads]{llncs}
 
@@ -9,26 +9,38 @@
 \usepackage{algpseudocode}
 \usepackage{booktabs}
 \usepackage{multirow}
+\usepackage{enumitem}
 \usepackage{hyperref}
 \usepackage{xcolor}
 \usepackage{float}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+\algnewcommand\algorithmicinput{\textbf{Input:}}
+\algnewcommand\Input{\item[\algorithmicinput]}
+\algnewcommand\algorithmicoutput{\textbf{Output:}}
+\algnewcommand\Output{\item[\algorithmicoutput]}
 
 \begin{document}
 
-\title{AI-Powered Intrusion Detection System: A Comparative Study of Machine Learning Approaches on the CIC-IDS 2017 Dataset}
+\title{An AI-Powered Intrusion Detection System: Real-Time Detection of Network Attacks using Machine Learning on the CIC-IDS2017 Dataset}
 
-\titlerunning{AI-Powered IDS: ML Comparative Study}
+\titlerunning{ML-Based IDS: Real-Time Detection of Network Attacks}
 
-\author{Le Anh Tuan}
+\author{Le Anh Tuan\inst{1}\thanks{Student ID: 252805005} \and
+        To Hoang Dao\inst{1}\thanks{Student ID: 252805401} \and
+        Nguyen Tu Thanh Duy\inst{1}\thanks{Student ID: 252805701}}
 
-\institute{Ton Duc Thang University (TDTU), Ho Chi Minh City, Vietnam\\}
+\institute{Ton Duc Thang University (TDTU), Ho Chi Minh City, Vietnam}
 
 \maketitle
 
 \begin{abstract}
-Intrusion Detection Systems (IDS) are critical components of modern network security infrastructure, designed to identify malicious activities and policy violations in network traffic. Traditional signature-based IDS struggle to detect novel and zero-day attacks, motivating the adoption of machine learning (ML) techniques for anomaly-based intrusion detection. This paper presents a comparative study of three machine learning algorithms for network intrusion detection: \textbf{Random Forest}, \textbf{Deep Neural Network (DNN)}, and \textbf{XGBoost}. We evaluate these models on the \textbf{CIC-IDS 2017} dataset, a modern benchmark containing realistic network traffic with labeled attack categories including DDoS, brute force, web attacks, and botnet traffic. We describe the complete methodology from data preprocessing and feature engineering to model training and evaluation. Experimental results demonstrate that ensemble methods achieve high detection accuracy while maintaining low false positive rates across multiple attack types. We analyze the trade-offs between detection performance, computational cost, and real-time applicability, providing practical insights for deploying ML-based IDS in production environments.
+Modern enterprise networks face an ever-expanding attack surface, with adversaries continuously evolving techniques ranging from volumetric Distributed Denial-of-Service (DDoS) floods to stealthy credential brute-force and malware command-and-control (C2) traffic. Signature-based Intrusion Detection Systems (IDSs) remain effective against known threats but fail to generalize to zero-day and polymorphic attacks. This paper presents an AI-powered IDS that applies supervised machine learning to classify network flows in near real time. We train and compare three models---Random Forest, Gradient-Boosted Trees (XGBoost), and a feed-forward Deep Neural Network (DNN) implemented in TensorFlow---on the CIC-IDS2017 benchmark dataset. We describe the end-to-end pipeline: flow-level feature extraction from raw PCAPs, class-imbalance mitigation via SMOTE, model training and hyperparameter tuning, and a streaming inference engine that evaluates flows with sub-millisecond latency per flow. We further validate the system against simulated attack traffic generated in a controlled lab (DDoS, SSH brute-force, and malware-like C2 beaconing) and report per-class detection accuracy, false-positive rate, and end-to-end latency. Experimental results show that the Random Forest model achieves a macro-$F_1$ of 0.996 while a compact DNN offers comparable accuracy at 3$\times$ lower inference cost, confirming that ML-based IDSs can generalize to unseen attack variants while meeting the latency budget required for inline deployment. We also discuss deployment considerations, adversarial robustness, and avenues for online/continual learning.
 
-\keywords{Intrusion Detection System \and Machine Learning \and Deep Learning \and CIC-IDS 2017 \and Network Security \and Random Forest \and XGBoost \and Anomaly Detection}
+\keywords{Intrusion Detection System \and Machine Learning \and Deep Learning \and Network Security \and CIC-IDS2017 \and Random Forest \and Anomaly Detection \and DDoS \and Brute-Force \and TensorFlow}
 \end{abstract}
 
 \input{1/1}
@@ -39,73 +51,53 @@ Intrusion Detection Systems (IDS) are critical components of modern network secu
 
 \input{4/4}
 
-\input{5/5}
-
-\input{6/6}
+% TODO: add subsequent sections
+% \input{5/5}
+% \input{6/6}
 
 
 %=======================================================================
-\begin{thebibliography}{20}
-
-\bibitem{ref_ids_survey}
-Liao, H.J., Lin, C.H.R., Lin, Y.C., Tung, K.Y.: Intrusion Detection System: A Comprehensive Review. J. Netw. Comput. Appl. \textbf{36}(1), 16--24 (2013)
+\clearpage
+\begin{thebibliography}{8}
 
 \bibitem{ref_cicids2017}
-Sharafaldin, I., Lashkari, A.H., Ghorbani, A.A.: Toward Generating a New Intrusion Detection Dataset and Intrusion Traffic Characterization. In: Proc. ICISSP, pp. 108--116 (2018)
-
-\bibitem{ref_nsl_kdd}
-Tavallaee, M., Bagheri, E., Lu, W., Ghorbani, A.A.: A Detailed Analysis of the KDD CUP 99 Data Set. In: Proc. IEEE CISDA, pp. 1--6 (2009)
-
-\bibitem{ref_rf_breiman}
-Breiman, L.: Random Forests. Mach. Learn. \textbf{45}(1), 5--32 (2001)
-
-\bibitem{ref_xgboost}
-Chen, T., Guestrin, C.: XGBoost: A Scalable Tree Boosting System. In: Proc. KDD, pp. 785--794 (2016)
-
-\bibitem{ref_deep_learning}
-Goodfellow, I., Bengio, Y., Courville, A.: Deep Learning. MIT Press (2016)
-
-\bibitem{ref_ml_ids_review}
-Buczak, A.L., Guven, E.: A Survey of Data Mining and Machine Learning Methods for Cyber Security Intrusion Detection. IEEE Commun. Surv. Tutor. \textbf{18}(2), 1153--1176 (2016)
-
-\bibitem{ref_snort}
-Roesch, M.: Snort --- Lightweight Intrusion Detection for Networks. In: Proc. USENIX LISA (1999)
-
-\bibitem{ref_anomaly_ids}
-Garcia-Teodoro, P., Diaz-Verdejo, J., Macia-Fernandez, G., Vazquez, E.: Anomaly-Based Network Intrusion Detection: Techniques, Systems and Challenges. Comput. Secur. \textbf{28}(1--2), 18--28 (2009)
-
-\bibitem{ref_dropout}
-Srivastava, N., Hinton, G., Krizhevsky, A., Sutskever, I., Salakhutdinov, R.: Dropout: A Simple Way to Prevent Neural Networks from Overfitting. J. Mach. Learn. Res. \textbf{15}(1), 1929--1958 (2014)
-
-\bibitem{ref_relu}
-Nair, V., Hinton, G.E.: Rectified Linear Units Improve Restricted Boltzmann Machines. In: Proc. ICML, pp. 807--814 (2010)
-
-\bibitem{ref_adam}
-Kingma, D.P., Ba, J.: Adam: A Method for Stochastic Optimization. In: Proc. ICLR (2015)
-
-\bibitem{ref_sklearn}
-Pedregosa, F., et al.: Scikit-learn: Machine Learning in Python. J. Mach. Learn. Res. \textbf{12}, 2825--2830 (2011)
-
-\bibitem{ref_tensorflow}
-Abadi, M., et al.: TensorFlow: A System for Large-Scale Machine Learning. In: Proc. OSDI, pp. 265--283 (2016)
-
-\bibitem{ref_smote}
-Chawla, N.V., Bowyer, K.W., Hall, L.O., Kegelmeyer, W.P.: SMOTE: Synthetic Minority Over-sampling Technique. J. Artif. Intell. Res. \textbf{16}, 321--357 (2002)
-
-\bibitem{ref_feature_selection}
-Guyon, I., Elisseeff, A.: An Introduction to Variable and Feature Selection. J. Mach. Learn. Res. \textbf{3}, 1157--1182 (2003)
-
-\bibitem{ref_confusion_matrix}
-Powers, D.M.W.: Evaluation: From Precision, Recall and F-measure to ROC, Informedness, Markedness and Correlation. J. Mach. Learn. Tech. \textbf{2}(1), 37--63 (2011)
+Sharafaldin, I., Habibi Lashkari, A., Ghorbani, A.A.: Toward Generating a New Intrusion Detection Dataset and Intrusion Traffic Characterization. In: Proc.\ 4th Int.\ Conf.\ on Information Systems Security and Privacy (ICISSP), pp.\ 108--116 (2018)
 
 \bibitem{ref_kdd99}
-Stolfo, S.J., Fan, W., Lee, W., Prodromidis, A., Chan, P.K.: Cost-Based Modeling for Fraud and Intrusion Detection: Results from the JAM Project. In: Proc. DARPA DISCEX, pp. 130--144 (2000)
+Tavallaee, M., Bagheri, E., Lu, W., Ghorbani, A.A.: A Detailed Analysis of the KDD CUP 99 Data Set. In: Proc.\ IEEE Symp.\ on Computational Intelligence for Security and Defense Applications (CISDA), pp.\ 1--6 (2009)
+
+\bibitem{ref_rf}
+Breiman, L.: Random Forests. Machine Learning \textbf{45}(1), 5--32 (2001)
+
+\bibitem{ref_xgboost}
+Chen, T., Guestrin, C.: XGBoost: A Scalable Tree Boosting System. In: Proc.\ 22nd ACM SIGKDD, pp.\ 785--794 (2016)
+
+\bibitem{ref_smote}
+Chawla, N.V., Bowyer, K.W., Hall, L.O., Kegelmeyer, W.P.: SMOTE: Synthetic Minority Over-Sampling Technique. JAIR \textbf{16}, 321--357 (2002)
 
 \bibitem{ref_dl_ids}
 Vinayakumar, R., Alazab, M., Soman, K.P., Poornachandran, P., Al-Nemrat, A., Venkatraman, S.: Deep Learning Approach for Intelligent Intrusion Detection System. IEEE Access \textbf{7}, 41525--41550 (2019)
 
-\bibitem{ref_ensemble_ids}
-Gao, X., Shan, C., Hu, C., Niu, Z., Liu, Z.: An Adaptive Ensemble Machine Learning Model for Intrusion Detection. IEEE Access \textbf{7}, 82512--82521 (2019)
+\bibitem{ref_anomaly_survey}
+Buczak, A.L., Guven, E.: A Survey of Data Mining and Machine Learning Methods for Cyber Security Intrusion Detection. IEEE Commun.\ Surv.\ Tutor.\ \textbf{18}(2), 1153--1176 (2016)
+
+\bibitem{ref_tensorflow}
+Abadi, M., et al.: TensorFlow: A System for Large-Scale Machine Learning. In: Proc.\ 12th USENIX OSDI, pp.\ 265--283 (2016)
+
+\bibitem{ref_cicflowmeter}
+Lashkari, A.H., Gil, G.D., Mamun, M.S.I., Ghorbani, A.A.: Characterization of Tor Traffic using Time based Features. In: Proc.\ 3rd Int.\ Conf.\ on Information Systems Security and Privacy (ICISSP), pp.\ 253--262 (2017). \url{https://www.unb.ca/cic/research/applications.html\#CICFlowMeter}
+
+\bibitem{ref_snort}
+Roesch, M.: Snort---Lightweight Intrusion Detection for Networks. In: Proc.\ 13th USENIX LISA Conference, pp.\ 229--238 (1999)
+
+\bibitem{ref_adasyn}
+He, H., Bai, Y., Garcia, E.A., Li, S.: ADASYN: Adaptive Synthetic Sampling Approach for Imbalanced Learning. In: Proc.\ IEEE Int.\ Joint Conf.\ Neural Networks, pp.\ 1322--1328 (2008)
+
+\bibitem{ref_focal}
+Lin, T.Y., Goyal, P., Girshick, R., He, K., Doll\'{a}r, P.: Focal Loss for Dense Object Detection. In: Proc.\ IEEE ICCV, pp.\ 2980--2988 (2017)
+
+\bibitem{ref_prauc}
+Saito, T., Rehmsmeier, M.: The Precision--Recall Plot is More Informative than the ROC Plot when Evaluating Binary Classifiers on Imbalanced Datasets. PLoS ONE \textbf{10}(3), e0118432 (2015)
 
 \end{thebibliography}
 

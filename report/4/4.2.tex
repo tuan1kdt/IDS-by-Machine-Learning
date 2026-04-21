@@ -1,29 +1,8 @@
-\subsection{Evaluation Metrics}
+\subsection{Baselines and Metrics}
+\label{sec:exp-metrics}
 
-We use the following standard metrics for multi-class classification~\cite{ref_confusion_matrix}:
-
-\paragraph{Confusion Matrix.} For each class $k$, the confusion matrix yields:
-\begin{itemize}
-    \item $TP_k$: True Positives --- correctly identified instances of class $k$
-    \item $FP_k$: False Positives --- instances incorrectly classified as class $k$
-    \item $FN_k$: False Negatives --- instances of class $k$ incorrectly classified as another class
-    \item $TN_k$: True Negatives --- instances correctly identified as not class $k$
-\end{itemize}
-
-\paragraph{Per-class metrics.}
-\begin{equation}
-    \text{Precision}_k = \frac{TP_k}{TP_k + FP_k}, \quad
-    \text{Recall}_k = \frac{TP_k}{TP_k + FN_k}
-\end{equation}
-\begin{equation}
-    \text{F1}_k = 2 \cdot \frac{\text{Precision}_k \cdot \text{Recall}_k}{\text{Precision}_k + \text{Recall}_k}
-\end{equation}
-
-\paragraph{Aggregate metrics.}
-\begin{itemize}
-    \item \textbf{Overall Accuracy}: $\frac{\sum_{k} TP_k}{\text{Total samples}}$
-    \item \textbf{Macro-averaged F1}: $\frac{1}{K}\sum_{k=1}^{K} \text{F1}_k$ --- treats all classes equally regardless of size, highlighting performance on rare attacks.
-    \item \textbf{Weighted F1}: $\sum_{k=1}^{K} w_k \cdot \text{F1}_k$ where $w_k$ is the proportion of class $k$ --- reflects overall performance accounting for class distribution.
-\end{itemize}
-
-For IDS evaluation, \textbf{Recall} (detection rate) is particularly critical --- a missed attack (false negative) is generally more costly than a false alarm (false positive).
+% TODO: recap the evaluation metrics used and the baselines compared against.
+%   - Restate macro-F1, weighted-F1, per-class precision/recall/F1, PR-AUC
+%   - Latency metrics (p50, p99 per-flow inference time)
+%   - Throughput (sustained flows/s)
+%   - Baselines: trivial-BENIGN classifier; signature-based reference (e.g., Snort rule subset)

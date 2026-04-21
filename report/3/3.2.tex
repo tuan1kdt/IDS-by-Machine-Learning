@@ -1,48 +1,52 @@
-\subsection{Data Preprocessing Pipeline}
-\label{sec:preprocessing}
+\subsection{System Architecture Overview}
+\label{sec:arch-overview}
 
-Raw network flow data requires substantial preprocessing before it can be used to train ML models. Our preprocessing pipeline consists of the following steps.
+The proposed IDS is organised as a staged pipeline in which each component exposes a narrow data contract to the next, enabling the offline training and online inference paths to share identical preprocessing and feature-engineering logic. Figure~\ref{fig:pipeline} summarises the five logical stages.
 
-\subsubsection{Step 1 -- Data Loading and Cleaning.}
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+    node distance=0.65cm and 0.85cm,
+    every node/.style={font=\footnotesize},
+    stage/.style={draw, rounded corners=2pt, minimum width=2.3cm, minimum height=0.9cm, align=center, thick},
+    arrow/.style={-Stealth, thick}
+]
+    \node[stage, fill=blue!8]   (capture)  {Traffic\\Capture};
+    \node[stage, fill=blue!8,  right=of capture]  (extract)  {Flow\\Extractor};
+    \node[stage, fill=green!10, right=of extract]  (prep)     {Preprocessing\\\& Scaling};
+    \node[stage, fill=orange!15, right=of prep]    (model)    {ML Inference\\(RF / XGB / DNN)};
+    \node[stage, fill=red!10,  right=of model]    (alert)    {Alert /\\Log Sink};
 
-The CIC-IDS 2017 dataset is distributed as multiple CSV files (one per day). We concatenate all files and apply the following cleaning operations:
-\begin{itemize}
-    \item \textbf{Remove invalid values}: Drop rows containing \texttt{NaN}, \texttt{Infinity}, or \texttt{-Infinity} values, which arise from division-by-zero in flow feature computation.
-    \item \textbf{Remove duplicates}: Eliminate exact duplicate rows that could bias the model.
-    \item \textbf{Strip whitespace}: Column names in the original CSV contain inconsistent spacing (e.g., ``\texttt{ Label}'' vs ``\texttt{Label}'').
-\end{itemize}
+    \draw[arrow] (capture) -- node[above=-1pt,font=\scriptsize]{pcap} (extract);
+    \draw[arrow] (extract) -- node[above=-1pt,font=\scriptsize]{flow row} (prep);
+    \draw[arrow] (prep)    -- node[above=-1pt,font=\scriptsize]{$\mathbf{x}\in\mathbb{R}^{d}$} (model);
+    \draw[arrow] (model)   -- node[above=-1pt,font=\scriptsize]{$\hat{y}, p$} (alert);
+\end{tikzpicture}
+\caption{End-to-end IDS pipeline. Solid arrows indicate the online data path; the offline training path reuses the green and orange stages on a static corpus.}
+\label{fig:pipeline}
+\end{figure}
 
-\subsubsection{Step 2 -- Label Encoding.}
+\subsubsection*{Stages.}
+Each stage is a replaceable unit with a well-defined interface:
 
-The target variable (\texttt{Label}) contains string labels. We map these to integer codes for model training. For multi-class classification, we retain all original attack labels. For binary classification (used as a baseline comparison), we map all attack types to a single \texttt{ATTACK} class.
+\begin{description}[leftmargin=1.2em,itemsep=2pt,topsep=2pt]
+    \item[Traffic Capture.] Raw packets are mirrored from a switch SPAN port or tap and written to a rolling PCAP buffer by \texttt{tcpdump} / \texttt{tshark}. For the training corpus this stage is already materialised as the PCAP files shipped with CIC-IDS2017.
+    \item[Flow Extractor.] \textsc{CICFlowMeter}~\cite{ref_cicflowmeter} groups packets into bidirectional flows keyed by the 5-tuple and emits one record per flow containing the 78 numeric features described in Section~\ref{sec:bg-dataset}. A flow is flushed when its idle timeout expires or an explicit FIN/RST is observed.
+    \item[Preprocessing \& Scaling.] Rows with \texttt{NaN}/$\pm\infty$ are dropped, zero-variance columns are removed, and the remaining numeric columns are transformed using a \emph{frozen} \texttt{RobustScaler} whose median and IQR statistics are persisted from the training split (Section~\ref{sec:bg-preproc}). Categorical labels are encoded via a persisted \texttt{LabelEncoder} for training-time consumption.
+    \item[ML Inference.] The scaled feature vector is handed to the active model (Random Forest, XGBoost, or DNN). The model emits a class index $\hat{y}$ and, when supported, a calibrated probability vector $p \in [0,1]^{C}$.
+    \item[Alert / Log Sink.] Non-\texttt{BENIGN} predictions above the per-class confidence threshold (tuned on validation; see Section~\ref{sec:inference}) are forwarded to the SIEM or blocking engine; all predictions are written to a rolling structured log for offline auditing and model-drift analysis.
+\end{description}
 
-\subsubsection{Step 3 -- Feature Selection.}
+\subsubsection*{Offline vs.\ Online Modes.}
+The same implementation artefact serves both modes. In the \emph{offline} mode the pipeline is fed a historical PCAP, the scaler and encoder are \emph{fitted} on the training split, and the learner's \texttt{fit} method consumes the cleaned feature matrix end-to-end. In the \emph{online} mode the scaler and encoder are loaded read-only from the training snapshot, the learner's \texttt{predict} method is invoked per-flow (or per micro-batch; Section~\ref{sec:inference}), and no component of the pipeline performs any stateful update. This symmetry is deliberate---it eliminates the most common failure mode in production ML systems, namely training/serving skew caused by subtly different feature-engineering code paths in the two phases.
 
-From the original 78 features, we remove:
-\begin{itemize}
-    \item Non-informative features: \texttt{Flow ID}, \texttt{Source IP}, \texttt{Destination IP}, \texttt{Source Port}, \texttt{Timestamp} --- these are identifiers, not generalizable patterns.
-    \item Constant-value features: Features with zero variance across all samples provide no discriminative power.
-\end{itemize}
+\subsubsection*{Data Contracts.}
+Between every two adjacent stages we define a typed contract that is enforced by a lightweight schema validator:
 
-We further apply correlation-based filtering~\cite{ref_feature_selection}: for pairs of features with Pearson correlation $|r| > 0.95$, we remove one of the pair to reduce multicollinearity. This typically reduces the feature set to approximately 50--60 features.
+\begin{description}[leftmargin=1.2em,itemsep=2pt,topsep=2pt]
+    \item[Extractor $\to$ Preprocessing:] a named-tuple of 78 numeric fields plus flow-identifier metadata (source/destination IP and port, protocol, timestamp).
+    \item[Preprocessing $\to$ Inference:] a dense \texttt{float32} vector $\mathbf{x} \in \mathbb{R}^{d}$ with $d = 78 + e$, where $e$ is the number of engineered features introduced in Section~\ref{sec:feat-eng}, plus the carried-through flow-identifier metadata.
+    \item[Inference $\to$ Alert Sink:] the flow-identifier metadata, the predicted label $\hat{y}$, and, when available, the top-1 confidence $p_{\hat{y}}$; optionally the full probability vector is persisted for audit.
+\end{description}
 
-\subsubsection{Step 4 -- Feature Scaling.}
-
-We apply \textbf{StandardScaler} normalization (zero mean, unit variance) to all numerical features:
-\begin{equation}
-    x'_j = \frac{x_j - \mu_j}{\sigma_j}
-\end{equation}
-where $\mu_j$ and $\sigma_j$ are the mean and standard deviation of feature $j$, computed \textit{only on the training set} to prevent data leakage. This normalization is particularly important for the DNN model, which is sensitive to feature scales.
-
-\subsubsection{Step 5 -- Handling Class Imbalance.}
-
-The dataset is heavily imbalanced (benign traffic dominates). We apply \textbf{SMOTE} (Synthetic Minority Over-sampling Technique)~\cite{ref_smote} on the training set only:
-\begin{itemize}
-    \item SMOTE generates synthetic samples for minority classes by interpolating between existing samples and their $k$-nearest neighbors in feature space.
-    \item This improves recall for rare attack types (e.g., Heartbleed, Infiltration) without duplicating existing data.
-    \item We do \textbf{not} apply SMOTE to the test set, ensuring evaluation reflects real-world class distribution.
-\end{itemize}
-
-\subsubsection{Step 6 -- Train/Test Split.}
-
-We split the preprocessed data into 80\% training and 20\% testing using stratified sampling to preserve the class distribution in both sets.
+This schema-first design means that every stage can be swapped---replacing \textsc{CICFlowMeter} with a bespoke eBPF extractor, or the Random Forest with a newer learner---without touching any upstream or downstream code.

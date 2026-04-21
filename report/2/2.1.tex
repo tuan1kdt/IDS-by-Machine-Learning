@@ -1,31 +1,24 @@
-\subsection{Intrusion Detection Systems}
+\subsection{Network Traffic and Attack Taxonomy}
+\label{sec:bg-network}
 
-An Intrusion Detection System (IDS) is a software or hardware solution that monitors network traffic or system activities for malicious actions or policy violations~\cite{ref_ids_survey}. IDS can be categorized along two orthogonal dimensions:
+\subsubsection*{Network Traffic: Packets and Flows.}
+At the lowest level, computer networks exchange information as \emph{packets}---discrete units of data equipped with protocol headers (Ethernet, IP, TCP/UDP) and a payload. A raw capture of packets is typically stored in the widely used \textbf{PCAP} (Packet CAPture) format, which preserves byte-for-byte fidelity of the observed traffic. While packet-level analysis is useful for deep inspection, it is impractical for statistical modelling because individual packets are noisy and of variable size.
 
-\subsubsection{By Data Source.}
+For intrusion detection, the natural unit of analysis is the \emph{flow}. A flow is a bidirectional exchange of packets that share the same \textbf{5-tuple}---source IP, destination IP, source port, destination port, and transport protocol---over a bounded time window. A tool such as \textsc{CICFlowMeter}~\cite{ref_cicflowmeter} ingests PCAP files and emits one row per flow, summarizing it with statistics such as duration, packet counts, inter-arrival times, and TCP flag distributions. Flow-level representations are the input modality used throughout this paper.
 
-\paragraph{Network-based IDS (NIDS).}
-NIDS monitors network traffic at strategic points (e.g., switches, routers, firewalls) by capturing and analyzing packets in real time. It inspects packet headers and payloads to detect suspicious patterns. NIDS is non-intrusive --- it does not require installation on individual hosts --- making it suitable for monitoring entire network segments. Examples include Snort~\cite{ref_snort} and Suricata.
+\subsubsection*{Taxonomy of Network Attacks.}
+We focus on the attack categories covered by CIC-IDS2017, grouped by their observable behaviour in flow statistics:
 
-\paragraph{Host-based IDS (HIDS).}
-HIDS operates on individual hosts, monitoring system calls, file system changes, log files, and application behavior. It can detect attacks that NIDS might miss, such as privilege escalation or insider threats. However, HIDS imposes overhead on the host and must be deployed on every machine to be protected.
+\begin{description}[leftmargin=1.2em,itemsep=2pt,topsep=2pt]
+    \item[Reconnaissance (Port Scan / Network Scan).] An attacker probes hosts or ports to map exposed services. Tools such as \textsf{nmap} and \textsf{masscan} emit many short-lived connection attempts to a large set of destinations, producing flows with very small packet counts but abnormally high arrival rates.
+    \item[Denial-of-Service / Distributed Denial-of-Service (DoS/DDoS).] Volumetric attacks attempt to exhaust network, transport, or application resources. They manifest as bursts of flows toward a single destination, with skewed packet-size distributions and unusual TCP flag patterns (e.g., SYN flood, ACK flood, HTTP flood via tools like \textsf{hping3} or \textsf{GoldenEye}).
+    \item[Brute-Force.] Credential-guessing attacks against SSH, FTP, and web login endpoints (e.g., \textsf{Patator}, \textsf{Hydra}). They appear as many short, repetitive flows to the same destination port, often failing authentication and producing characteristic short-duration TCP sessions.
+    \item[Web Attacks.] SQL injection, cross-site scripting (XSS), and command injection target the HTTP layer. At the flow level, they are harder to spot: only a small fraction of bytes differ from normal browsing, so feature engineering on payload-derived statistics or URI entropy helps.
+    \item[Infiltration and Malware Command-and-Control (C2).] After a host is compromised, it frequently \emph{beacons} back to an attacker-controlled server at regular intervals. The flow-level signature is low-volume but highly periodic traffic, often over encrypted channels.
+    \item[Botnet Traffic.] Infected hosts coordinate with a controller via IRC, HTTP(S), or peer-to-peer overlays. Botnet flows often share similar statistical fingerprints across many compromised sources.
+\end{description}
 
-\subsubsection{By Detection Method.}
+Each of these attack classes shapes the joint distribution of flow features differently, which is precisely what a learned classifier exploits.
 
-\paragraph{Signature-based Detection.}
-This approach maintains a database of known attack signatures --- specific byte sequences, packet patterns, or behavioral rules. Incoming traffic is matched against these signatures. Signature-based detection achieves high accuracy and very low false positive rates for known attacks. However, it cannot detect:
-\begin{itemize}
-    \item \textit{Zero-day attacks}: Previously unknown vulnerabilities with no existing signature.
-    \item \textit{Polymorphic attacks}: Attacks that mutate their code to evade pattern matching.
-    \item \textit{Encrypted traffic}: Payloads hidden by encryption cannot be signature-matched.
-\end{itemize}
-
-\paragraph{Anomaly-based Detection.}
-Anomaly-based IDS establishes a baseline model of ``normal'' network behavior during a training phase, then flags any traffic that deviates significantly from this baseline~\cite{ref_anomaly_ids}. The key advantage is the ability to detect novel attacks without prior knowledge of their signatures. The main challenges are:
-\begin{itemize}
-    \item \textit{High false positive rates}: Legitimate but unusual traffic may be flagged as anomalous.
-    \item \textit{Training data quality}: The baseline must accurately represent normal behavior; contaminated training data leads to poor models.
-    \item \textit{Concept drift}: Normal network behavior changes over time, requiring periodic model retraining.
-\end{itemize}
-
-Machine learning techniques are naturally suited for anomaly-based detection, as they can learn complex decision boundaries from data and adapt to evolving traffic patterns.
+\subsubsection*{Signature-based vs. Anomaly-based vs. ML-based IDS.}
+Classical Intrusion Detection Systems are broadly categorized as \emph{signature-based}---matching traffic against handcrafted rules (e.g., Snort, Suricata)~\cite{ref_snort}---or \emph{anomaly-based}---modelling normal behaviour and flagging deviations. Signature approaches are precise on known threats but blind to novel variants; anomaly approaches generalize better but suffer historically from high false-positive rates. Machine-learning-based IDSs occupy a middle ground by \emph{learning} discriminative flow representations directly from labelled traffic, providing better generalization than signatures while offering lower false-positive rates than pure anomaly detection~\cite{ref_anomaly_survey}.

@@ -1,48 +1,45 @@
-\subsection{Machine Learning for Intrusion Detection}
+\subsection{The CIC-IDS2017 Dataset}
+\label{sec:bg-dataset}
 
-Machine learning provides a data-driven approach to intrusion detection, where models learn to distinguish between benign and malicious traffic from labeled examples~\cite{ref_ml_ids_review}. We review the key ML paradigms and algorithms relevant to this work.
+\subsubsection*{Overview and Collection Methodology.}
+The \textbf{CIC-IDS2017} dataset, released by the Canadian Institute for Cybersecurity, was built specifically to address the well-known deficiencies of older benchmarks (KDD'99, NSL-KDD) such as redundant records, obsolete attack vectors, and unrealistic traffic patterns~\cite{ref_cicids2017,ref_kdd99}. It was collected over \emph{five working days} (Monday through Friday, 3--7 July 2017) on a dedicated testbed comprising a victim network of 10 hosts running Windows, Linux, and macOS, and an attacker network of 4 machines launching scripted campaigns. Benign background traffic was generated via the \emph{B-Profile} framework, which statistically models user behaviour across HTTP, HTTPS, FTP, SSH, and email protocols.
 
-\subsubsection{Supervised Learning for Classification.}
-In the IDS context, supervised learning trains a classifier $f: \mathbb{R}^d \to \{c_1, c_2, \ldots, c_K\}$ on a labeled dataset of network flows, where each flow is represented by $d$ features and assigned one of $K$ classes (e.g., \texttt{BENIGN}, \texttt{DDoS}, \texttt{BruteForce}).
+The raw PCAP captures were processed with the \textsc{CICFlowMeter} toolkit~\cite{ref_cicflowmeter}, which emits one row per bidirectional flow and labels each flow with the ground-truth class derived from the attack schedule. The resulting corpus contains approximately \textbf{2.83 million labelled flows}, distributed across one benign class and fourteen attack classes (commonly collapsed to seven aggregate classes for modelling).
 
-\paragraph{Decision Trees.}
-A decision tree recursively partitions the feature space by selecting the feature and threshold that maximizes information gain (or minimizes Gini impurity) at each internal node. For a node $t$ with class distribution $p_k$ ($k = 1, \ldots, K$), the Gini impurity is:
-\begin{equation}
-    \text{Gini}(t) = 1 - \sum_{k=1}^{K} p_k^2
-\end{equation}
-Decision trees are interpretable but prone to overfitting on complex datasets.
+\subsubsection*{Feature Semantics.}
+CIC-IDS2017 provides \textbf{78 numeric features} per flow (plus the label). For the purpose of this report we group them into four semantically meaningful families:
 
-\paragraph{Random Forest~\cite{ref_rf_breiman}.}
-Random Forest is an ensemble method that constructs $B$ decision trees, each trained on a bootstrap sample of the data with a random subset of features at each split. The final prediction is determined by majority vote:
-\begin{equation}
-    \hat{y} = \text{mode}\{h_b(\mathbf{x}) : b = 1, \ldots, B\}
-\end{equation}
-where $h_b$ is the $b$-th tree. This bagging approach reduces variance and improves generalization. Random Forest also provides a natural measure of \textbf{feature importance} based on the mean decrease in impurity across all trees.
+\begin{description}[leftmargin=1.2em,itemsep=2pt,topsep=2pt]
+    \item[Flow-level descriptors.] \texttt{Flow Duration}, \texttt{Flow Bytes/s}, \texttt{Flow Packets/s}, \texttt{Total Fwd/Bwd Packets}, \texttt{Total Length of Fwd/Bwd Packets}. These capture the gross size and rate of the exchange---large values indicate volumetric traffic such as DDoS or file transfer; near-zero values hint at reconnaissance probes.
+    \item[Packet-size statistics.] \texttt{Fwd/Bwd Packet Length Min, Max, Mean, Std}, \texttt{Packet Length Variance}, \texttt{Min/Max Packet Length}. Distributions of packet sizes discriminate, for example, short-packet SYN floods from long-packet bulk transfers.
+    \item[Inter-arrival times (IAT).] \texttt{Flow IAT Mean/Std/Max/Min}, \texttt{Fwd IAT Total/Mean/Std}, \texttt{Bwd IAT Total/Mean/Std}, \texttt{Active/Idle Mean/Std}. Timing features are the strongest signal for periodic beaconing (C2), brute-force loops, and low-and-slow scans.
+    \item[TCP flag and header counts.] \texttt{SYN/ACK/FIN/RST/PSH/URG Flag Count}, \texttt{Fwd/Bwd PSH/URG Flags}, \texttt{Fwd/Bwd Header Length}. Flag distributions are especially informative for detecting half-open connections, scans, and malformed handshakes.
+\end{description}
 
-\paragraph{XGBoost~\cite{ref_xgboost}.}
-XGBoost (eXtreme Gradient Boosting) builds an ensemble of trees sequentially. At each step $t$, a new tree $f_t$ is added to minimize the regularized objective:
-\begin{equation}
-    \mathcal{L}^{(t)} = \sum_{i=1}^{n} l(y_i, \hat{y}_i^{(t-1)} + f_t(\mathbf{x}_i)) + \Omega(f_t)
-\end{equation}
-where $l$ is the loss function, $\hat{y}_i^{(t-1)}$ is the prediction from the first $t-1$ trees, and $\Omega(f_t) = \gamma T + \frac{1}{2}\lambda \|w\|^2$ is a regularization term penalizing tree complexity ($T$ = number of leaves, $w$ = leaf weights). XGBoost uses second-order Taylor expansion of the loss for efficient split finding and incorporates column subsampling and shrinkage for regularization.
+\begin{table}[h]
+\centering
+\caption{Aggregate class distribution of CIC-IDS2017 (approximate).}
+\label{tab:class-dist}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Class} & \textbf{\#Flows} & \textbf{\%} \\
+\midrule
+BENIGN                     & 2,273,097 & 80.30 \\
+DDoS                       &   128,027 &  4.52 \\
+PortScan                   &   158,930 &  5.62 \\
+DoS Hulk                   &   231,073 &  8.16 \\
+DoS GoldenEye              &    10,293 &  0.36 \\
+DoS slowloris / Slowhttptest &  11,420 &  0.40 \\
+FTP-Patator / SSH-Patator   &    13,835 &  0.49 \\
+Web Attack (Brute/XSS/SQLi) &     2,180 &  0.08 \\
+Bot                         &     1,966 &  0.07 \\
+Infiltration                &        36 &  0.0013 \\
+Heartbleed                  &        11 &  0.0004 \\
+\midrule
+\textbf{Total}              & \textbf{2{,}830{,}868} & \textbf{100} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\subsubsection{Deep Learning.}
-
-\paragraph{Deep Neural Networks (DNN)~\cite{ref_deep_learning}.}
-A DNN consists of an input layer, multiple hidden layers, and an output layer. Each hidden layer applies a linear transformation followed by a non-linear activation function. For layer $l$:
-\begin{equation}
-    \mathbf{h}^{(l)} = \sigma(\mathbf{W}^{(l)} \mathbf{h}^{(l-1)} + \mathbf{b}^{(l)})
-\end{equation}
-where $\mathbf{W}^{(l)}$ and $\mathbf{b}^{(l)}$ are learnable weights and biases, and $\sigma$ is an activation function. Common choices include:
-\begin{itemize}
-    \item \textbf{ReLU}~\cite{ref_relu}: $\sigma(z) = \max(0, z)$ --- computationally efficient, mitigates vanishing gradients.
-    \item \textbf{Softmax} (output layer): $\sigma(z_k) = \frac{e^{z_k}}{\sum_{j} e^{z_j}}$ --- produces a probability distribution over $K$ classes.
-\end{itemize}
-
-Training minimizes the categorical cross-entropy loss:
-\begin{equation}
-    \mathcal{L} = -\sum_{i=1}^{n} \sum_{k=1}^{K} y_{ik} \log(\hat{p}_{ik})
-\end{equation}
-using gradient-based optimization (e.g., Adam~\cite{ref_adam}). Regularization techniques such as \textbf{Dropout}~\cite{ref_dropout} (randomly zeroing neuron outputs during training) and \textbf{Batch Normalization} are used to prevent overfitting.
-
-DNNs can learn hierarchical feature representations automatically, making them well-suited for high-dimensional network traffic data where manual feature engineering may miss complex patterns.
+\subsubsection*{Dataset Statistics and Challenges.}
+Table~\ref{tab:class-dist} summarizes the class distribution. Two properties dominate the modelling discussion. First, the dataset is \textbf{severely imbalanced}: the benign class alone accounts for $\approx 80\%$ of all flows, whereas classes such as \texttt{Heartbleed} and \texttt{Infiltration} contain fewer than a hundred examples each. Naive training therefore produces classifiers that default to \texttt{BENIGN} and achieve deceptively high overall accuracy while failing on the minority attack classes that matter most. Second, the feature set contains a small number of columns with undefined values (\texttt{NaN}, $\pm\infty$) produced by edge cases in the flow calculator (e.g., division by zero for single-packet flows), and a handful of zero-variance columns that must be removed. These issues motivate the preprocessing pipeline described next.

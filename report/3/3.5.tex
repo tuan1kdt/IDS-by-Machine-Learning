@@ -1,0 +1,51 @@
+\subsection{Training Procedure}
+\label{sec:training}
+
+The training procedure knits together the preprocessing decisions of Section~\ref{sec:bg-preproc}, the splitting protocol of Section~\ref{sec:bg-ml}, and the learner configurations of Section~\ref{sec:model-design}. We deliberately isolate \emph{data-altering} steps (cleaning, scaling, SMOTE) to the training split and \emph{freeze} all fitted artefacts before they are applied to the validation and test splits. This single rule eliminates the two most common causes of inflated reported scores on CIC-IDS2017 in the literature: scaler fit on the full dataset (leaks test statistics) and SMOTE applied before the split (leaks synthetic test examples derived from training points).
+
+\subsubsection*{End-to-End Training.}
+Algorithm~\ref{alg:training} specifies the full offline training routine. It ingests the raw CICFlowMeter corpus and emits a trained classifier together with the persisted scaler and label encoder that the inference engine will consume verbatim at deployment time.
+
+\begin{algorithm}[h]
+\caption{Offline training of the ML-based IDS}
+\label{alg:training}
+\begin{algorithmic}[1]
+\Input Raw CICFlowMeter corpus $\mathcal{D}$; learner family $\mathcal{M} \in \{\text{RF}, \text{XGB}, \text{DNN}\}$; target top-level class count $C$.
+\Output Fitted classifier $f_\theta$; fitted scaler $S$; fitted label encoder $E$; per-class decision thresholds $\boldsymbol{\tau} \in [0,1]^{C}$.
+\Statex
+\State $\mathcal{D} \leftarrow \textsc{Clean}(\mathcal{D})$ \Comment{drop NaN/$\pm\infty$, zero-variance columns, negative durations}
+\State $\mathcal{D} \leftarrow \textsc{EngineerFeatures}(\mathcal{D})$ \Comment{append $10$ engineered columns (Section~\ref{sec:feat-eng})}
+\State $(\mathcal{D}_{\text{tr}}, \mathcal{D}_{\text{va}}, \mathcal{D}_{\text{te}}) \leftarrow \textsc{StratifiedSplit}(\mathcal{D}, 0.70, 0.15, 0.15)$
+\Statex
+\State $S \leftarrow \textsc{RobustScaler.fit}(\mathcal{D}_{\text{tr}})$ \Comment{fit on train only}
+\State $E \leftarrow \textsc{LabelEncoder.fit}(\mathcal{D}_{\text{tr}}\texttt{.labels})$
+\State $\mathcal{D}_{\text{tr}} \leftarrow S(\mathcal{D}_{\text{tr}})$; $\mathcal{D}_{\text{va}} \leftarrow S(\mathcal{D}_{\text{va}})$; $\mathcal{D}_{\text{te}} \leftarrow S(\mathcal{D}_{\text{te}})$
+\Statex
+\State $\mathcal{D}_{\text{tr}}^{+} \leftarrow \textsc{SMOTE}(\mathcal{D}_{\text{tr}}, k{=}5)$ \Comment{oversample minority classes on train only}
+\Statex
+\State $\Theta^{\star} \leftarrow \emptyset$; $F_1^{\star} \leftarrow -\infty$
+\For{each candidate hyperparameter configuration $\theta \in \textsc{SearchSpace}(\mathcal{M})$}
+    \State $\bar{F_1} \leftarrow \frac{1}{k}\sum_{i=1}^{k} \textsc{Eval}(\mathcal{M}_\theta, \mathcal{D}_{\text{tr}}^{+}, \text{fold}_i)$
+    \Comment{stratified 5-fold CV, macro-$F_1$}
+    \If{$\bar{F_1} > F_1^{\star}$}
+        \State $\Theta^{\star} \leftarrow \theta$; $F_1^{\star} \leftarrow \bar{F_1}$
+    \EndIf
+\EndFor
+\Statex
+\State $f_\theta \leftarrow \mathcal{M}_{\Theta^{\star}}\textsc{.fit}(\mathcal{D}_{\text{tr}}^{+})$ with early stopping on $\mathcal{D}_{\text{va}}$
+\State $\boldsymbol{\tau} \leftarrow \textsc{TuneThresholds}(f_\theta, \mathcal{D}_{\text{va}})$ \Comment{per-class PR-curve, maximise $F_1$}
+\State \textbf{return} $(f_\theta, S, E, \boldsymbol{\tau})$
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection*{Hyperparameter Search.}
+The search space for each learner family is enumerated in Section~\ref{sec:model-design}. For RF and XGBoost we perform an \emph{exhaustive grid} search (respectively $3{\times}3 = 9$ and $3{\times}3 = 9$ configurations); for the DNN the architecture itself is fixed and only the dropout rate ($\{0.2, 0.3, 0.4\}$) and focal-loss $\gamma$ ($\{1.0, 2.0, 3.0\}$) are searched. Each configuration is scored by the macro-$F_1$ of the stratified 5-fold cross-validation on the SMOTE-augmented training split. The winning configuration is then refit on the entire training split and evaluated on the untouched held-out test split exactly once, following the standard reproducibility protocol.
+
+\subsubsection*{Early Stopping.}
+For the DNN and XGBoost, early stopping on the validation split is used as an orthogonal regulariser: training halts when the validation macro-$F_1$ fails to improve by at least $10^{-4}$ for a configurable patience horizon (5 epochs for the DNN, 20 boosting rounds for XGBoost). The RF has no equivalent mechanism; its only growth control is \texttt{max\_depth}, which is part of the grid search above.
+
+\subsubsection*{Threshold Tuning.}
+Trained classifiers emit a probability vector $\mathbf{p}(\mathbf{x}) \in [0,1]^{C}$; the default decision rule $\hat{y} = \arg\max_c p_c$ is calibrated only when the operating costs of all classes are equal. In IDS practice they are decidedly not---missing an \texttt{Infiltration} flow costs more than a duplicate \texttt{PortScan} alert. We therefore compute, on the validation split, the per-class decision threshold $\tau_c^\star$ that maximises $F_{1,c}$, and at inference time emit class $c$ whenever $p_c(\mathbf{x}) \ge \tau_c^\star$ (the top-1 class above its threshold; \texttt{BENIGN} is returned if none qualify). This post-hoc tuning is essentially free at inference time but recovers several percentage points of macro-$F_1$ on the rarest classes.
+
+\subsubsection*{Reproducibility.}
+All random-number seeds (split, SMOTE, model initialisation, Adam shuffling) are fixed at training launch and logged alongside the artefacts. The full feature-engineering and preprocessing logic is packaged as a single scikit-learn \texttt{Pipeline} object so that the offline training and online inference code paths are byte-identical up to the final learner.

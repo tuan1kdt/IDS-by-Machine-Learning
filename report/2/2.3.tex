@@ -1,11 +1,37 @@
-\subsection{Problem Statement}
+\subsection{Data Preprocessing}
+\label{sec:bg-preproc}
 
-\textbf{ML-based Network Intrusion Detection}: Given a dataset $D = \{(\mathbf{x}_1, y_1), (\mathbf{x}_2, y_2), \ldots, (\mathbf{x}_n, y_n)\}$ of labeled network flows, where each flow $\mathbf{x}_i \in \mathbb{R}^d$ is described by $d$ features (e.g., flow duration, packet counts, byte counts, flag distributions) and $y_i \in \{c_1, c_2, \ldots, c_K\}$ is its class label (\texttt{BENIGN} or an attack type), train a classifier $f: \mathbb{R}^d \to \{c_1, \ldots, c_K\}$ that:
-\begin{enumerate}
-    \item Maximizes \textbf{detection rate} (recall) for each attack category.
-    \item Minimizes \textbf{false positive rate} (misclassifying benign traffic as attacks).
-    \item Generalizes to unseen network flows not present in the training set.
-    \item Is computationally efficient enough for real-time or near-real-time deployment.
-\end{enumerate}
+Raw flow-level records cannot be consumed directly by most learning algorithms. Preprocessing is therefore a critical stage that determines both the ceiling of achievable accuracy and the fairness of the per-class evaluation. We briefly review the four preprocessing concerns most relevant to this work: data cleaning, normalization, feature engineering, and class-imbalance handling.
 
-This is a \textbf{multi-class classification} problem with significant class imbalance --- benign traffic typically dominates, while some attack types may represent less than 0.1\% of the total flows.
+\subsubsection*{Data Cleaning.}
+We drop rows containing \texttt{NaN} or $\pm\infty$ values (a few thousand out of 2.83M), remove exact duplicate flows, and eliminate columns whose variance is identically zero (several of the CICFlowMeter TCP-window features are constant across CIC-IDS2017). Rows with negative durations---a known artifact of the flow calculator when timestamps roll over---are also discarded. After cleaning, approximately 99.6\% of the original records remain.
+
+\subsubsection*{Normalization.}
+Feature magnitudes in CIC-IDS2017 span many orders of magnitude---\texttt{Flow Duration} can range from micro-seconds to minutes; byte counts from single digits to tens of millions. Tree-based learners (Random Forest, XGBoost) are invariant to monotonic rescaling and therefore do \emph{not} require normalization. However, gradient-based learners (the DNN) depend on balanced feature scales for stable optimization. Three standard transforms are commonly applied:
+\begin{align}
+\text{Min-Max:}\quad &  x' = \frac{x - x_{\min}}{x_{\max} - x_{\min}}, \\
+\text{Z-score (Standard):}\quad & x' = \frac{x - \mu}{\sigma}, \\
+\text{Robust:}\quad & x' = \frac{x - \operatorname{median}(x)}{\operatorname{IQR}(x)},
+\end{align}
+where $\mu, \sigma$ and the median/IQR are computed on the training split only, then applied identically to validation and test to avoid data leakage. We adopt \emph{Robust} scaling as the default for the DNN because CIC-IDS2017 contains long-tailed features heavily influenced by outliers.
+
+\subsubsection*{Label Encoding.}
+The categorical label is encoded as an integer $y \in \{0, 1, \ldots, C-1\}$ for tree-based classifiers (scikit-learn's \texttt{LabelEncoder}), and as a one-hot vector $\mathbf{y} \in \{0,1\}^C$ for the DNN so that a softmax output layer and categorical cross-entropy loss can be used directly.
+
+\subsubsection*{Feature Extraction versus Feature Generation.}
+The two terms are frequently confused. \emph{Feature extraction} refers to deriving informative variables from raw data: CICFlowMeter is an extraction step that turns a PCAP file (binary packet stream) into 78 tabular statistics per flow. \emph{Feature generation} (or feature engineering) refers to deriving new variables from already-extracted ones to expose relationships the base features do not surface directly---examples include ratios (\texttt{Bwd Packets / Fwd Packets}), logarithmic transforms of heavy-tailed columns, and binary indicators for zero-packet backward directions. In Section~\ref{sec:models} we describe a small set of engineered features we found useful on top of the stock 78.
+
+\subsubsection*{Class-Imbalance Handling.}
+Because CIC-IDS2017 is dominated by benign traffic, a model trained on the raw distribution is likely to collapse to the trivial classifier $\hat{y} \equiv \text{BENIGN}$. Three families of techniques mitigate this:
+
+\begin{description}[leftmargin=1.2em,itemsep=2pt,topsep=2pt]
+    \item[Undersampling.] The majority class is randomly subsampled until it matches (or is only a small multiple of) the minority classes. \emph{Random Undersampling} is simple and fast but discards information; \emph{NearMiss} variants attempt to keep majority-class examples closest to the decision boundary.
+    \item[Oversampling.] Minority classes are augmented. \emph{Random Oversampling} duplicates existing rows and is prone to overfitting. \textbf{SMOTE} (Synthetic Minority Over-sampling Technique)~\cite{ref_smote} instead interpolates between a minority-class sample and one of its $k$ nearest neighbours, producing \emph{synthetic} examples in feature space:
+    \begin{equation}
+        \mathbf{x}_{\text{new}} = \mathbf{x}_i + \lambda \cdot (\mathbf{x}_{j} - \mathbf{x}_i), \quad \lambda \sim \mathcal{U}(0,1),
+    \end{equation}
+    where $\mathbf{x}_j$ is a random neighbour of $\mathbf{x}_i$ in the minority class. Variants such as \emph{Borderline-SMOTE} and \emph{ADASYN}~\cite{ref_adasyn} focus synthesis near the decision boundary where it is most informative.
+    \item[Cost-sensitive learning.] Rather than altering the dataset, the loss function is re-weighted so that misclassifying a minority example is penalized more heavily. In scikit-learn this is achieved via \texttt{class\_weight='balanced'}; for deep networks the \emph{focal loss}~\cite{ref_focal} down-weights easy examples and concentrates gradient signal on hard (typically minority) cases.
+\end{description}
+
+In our pipeline we apply SMOTE \emph{only to the training split} after cleaning and normalization; the validation and test splits retain the original distribution so that reported metrics reflect real-world operating conditions.
