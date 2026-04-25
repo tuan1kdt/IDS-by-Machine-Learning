@@ -38,9 +38,9 @@
 \maketitle
 
 \begin{abstract}
-Modern enterprise networks face an ever-expanding attack surface, with adversaries continuously evolving techniques ranging from volumetric Distributed Denial-of-Service (DDoS) floods to stealthy credential brute-force and malware command-and-control (C2) traffic. Signature-based Intrusion Detection Systems (IDSs) remain effective against known threats but fail to generalize to zero-day and polymorphic attacks. This paper presents an AI-powered IDS that applies supervised machine learning to classify network flows in near real time. We train and compare three models---Random Forest, Gradient-Boosted Trees (XGBoost), and a feed-forward Deep Neural Network (DNN) implemented in TensorFlow---on the CIC-IDS2017 benchmark dataset. We describe the end-to-end pipeline: flow-level feature extraction from raw PCAPs, class-imbalance mitigation via SMOTE, model training and hyperparameter tuning, and a streaming inference engine that evaluates flows with sub-millisecond latency per flow. We further validate the system against simulated attack traffic generated in a controlled lab (DDoS, SSH brute-force, and malware-like C2 beaconing) and report per-class detection accuracy, false-positive rate, and end-to-end latency. Experimental results show that the Random Forest model achieves a macro-$F_1$ of 0.996 while a compact DNN offers comparable accuracy at 3$\times$ lower inference cost, confirming that ML-based IDSs can generalize to unseen attack variants while meeting the latency budget required for inline deployment. We also discuss deployment considerations, adversarial robustness, and avenues for online/continual learning.
+Modern enterprise networks face an ever-expanding attack surface, with adversaries employing techniques ranging from volumetric Distributed Denial-of-Service (DDoS) floods to stealthy credential brute-force and web-layer injection attacks. Signature-based Intrusion Detection Systems (IDSs) remain effective against known threats but fail to generalise to novel and polymorphic attacks. This paper presents an AI-powered IDS that applies supervised machine learning to classify network flows across 13 traffic classes using the CIC-IDS2017 benchmark. We design an end-to-end pipeline comprising stratified sampling, a proportional SMOTE oversampling strategy based on a square-root target formula, and comparative training of four classifiers: LightGBM, XGBoost, Random Forest, and Decision Tree. Experimental results on a held-out test set of 46,838 flows show that \textbf{LightGBM with Proportional SMOTE} achieves the best Macro-$F_1$ of \textbf{0.9241} and Balanced Accuracy of \textbf{0.9253}, with six of thirteen classes reaching perfect $F_1 = 1.00$. All tree-based models sustain $> 30{,}000$ flows per second on commodity CPU hardware, meeting the latency budget for inline deployment. We identify the remaining failure modes---chiefly the confusion between Web Attack sub-types and the degraded reliability of classes with over 80\% synthetic training samples---and discuss targeted mitigations including payload-level features and threshold tuning.
 
-\keywords{Intrusion Detection System \and Machine Learning \and Deep Learning \and Network Security \and CIC-IDS2017 \and Random Forest \and Anomaly Detection \and DDoS \and Brute-Force \and TensorFlow}
+\keywords{Intrusion Detection System \and Machine Learning \and CIC-IDS2017 \and LightGBM \and XGBoost \and Random Forest \and SMOTE \and Class Imbalance \and Network Security}
 \end{abstract}
 
 \input{1/1}
@@ -51,9 +51,8 @@ Modern enterprise networks face an ever-expanding attack surface, with adversari
 
 \input{4/4}
 
-% TODO: add subsequent sections
-% \input{5/5}
-% \input{6/6}
+\input{5/5}
+\input{6/6}
 
 
 %=======================================================================
@@ -83,6 +82,9 @@ Buczak, A.L., Guven, E.: A Survey of Data Mining and Machine Learning Methods fo
 
 \bibitem{ref_tensorflow}
 Abadi, M., et al.: TensorFlow: A System for Large-Scale Machine Learning. In: Proc.\ 12th USENIX OSDI, pp.\ 265--283 (2016)
+
+\bibitem{ref_lightgbm}
+Ke, G., Meng, Q., Finley, T., Wang, T., Chen, W., Ma, W., Ye, Q., Liu, T.Y.: LightGBM: A Highly Efficient Gradient Boosting Decision Tree. In: Advances in Neural Information Processing Systems (NeurIPS), vol.\ 30, pp.\ 3146--3154 (2017)
 
 \bibitem{ref_cicflowmeter}
 Lashkari, A.H., Gil, G.D., Mamun, M.S.I., Ghorbani, A.A.: Characterization of Tor Traffic using Time based Features. In: Proc.\ 3rd Int.\ Conf.\ on Information Systems Security and Privacy (ICISSP), pp.\ 253--262 (2017). \url{https://www.unb.ca/cic/research/applications.html\#CICFlowMeter}

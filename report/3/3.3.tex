@@ -1,42 +1,8 @@
 \subsection{Feature Engineering}
 \label{sec:feat-eng}
 
-Section~\ref{sec:bg-preproc} drew a distinction between \emph{feature extraction}---the \textsc{CICFlowMeter} step that turns raw PCAPs into 78 tabular statistics---and \emph{feature generation}, which derives new variables from the already-extracted ones to expose relationships that the base features do not surface directly. This subsection describes the small set of engineered features we compute on top of the stock 78 and the rationale for each.
+The 78 numeric features produced by \textsc{CICFlowMeter} are used as-is in our experiments. Dropping the flow-identifier metadata columns (\texttt{Flow ID}, source/destination IP, \texttt{Timestamp}) leaves a feature matrix $\mathbf{X} \in \mathbb{R}^{N \times 78}$ whose columns span four semantically meaningful groups: flow-level descriptors (duration, byte/packet counts), packet-size statistics (min/max/mean/std), inter-arrival times (IAT mean/std in both directions), and TCP flag counts (SYN, ACK, FIN, RST, PSH, URG).
 
-Our engineering is guided by two principles. First, we only introduce features whose computation is $O(1)$ per flow given the existing columns, so that the online preprocessing stage (Figure~\ref{fig:pipeline}) incurs negligible additional latency. Second, every engineered feature is stateless with respect to the flow stream; no rolling window or cross-flow aggregation is required, preserving the per-flow independence assumption of the downstream classifier.
+This ``raw features only'' approach is intentional. As noted in Section~\ref{sec:bg-ml}, tree-based learners are invariant to monotone column rescaling and do not require domain-engineered interaction features to achieve strong performance on tabular data. The only preprocessing applied before the learner is the \texttt{StandardScaler} fitted on the training split, which centres and normalises each column to unit variance. All four candidate models consume this same $\mathbb{R}^{78}$ representation.
 
-\subsubsection*{Directional Ratios.}
-CIC-IDS2017 provides separate forward and backward statistics but does not surface their \emph{ratios} directly. Several attack classes are characterised more by directional asymmetry than by absolute magnitude. For example, a DDoS SYN flood produces many forward packets with almost no backward response; an SSH brute-force loop produces roughly equal forward/backward traffic but with atypical payload ratios. We therefore add:
-\begin{align}
-    r_{\text{pkt}}  &= \frac{\texttt{Bwd Packets} + \varepsilon}{\texttt{Fwd Packets} + \varepsilon}, \\
-    r_{\text{byte}} &= \frac{\texttt{Bwd Bytes}\,  + \varepsilon}{\texttt{Fwd Bytes}\,  + \varepsilon}, \\
-    r_{\text{size}} &= \frac{\texttt{Bwd Packet Length Mean} + \varepsilon}{\texttt{Fwd Packet Length Mean} + \varepsilon},
-\end{align}
-with $\varepsilon = 10^{-6}$ to guard against division by zero on one-sided flows.
-
-\subsubsection*{Log-Transforms of Heavy-Tailed Columns.}
-A handful of CICFlowMeter columns span many orders of magnitude---\texttt{Flow Duration}, \texttt{Flow Bytes/s}, \texttt{Flow Packets/s}, \texttt{Total Length of Fwd/Bwd Packets}---and their raw distribution is extremely right-skewed. Tree-based learners are unaffected by monotone transforms, but the DNN benefits significantly from a bounded-tail input. We therefore append $\log_{10}(1 + x)$ variants of these five columns rather than replacing the originals, leaving the learners free to pick whichever scale is more informative:
-\begin{equation}
-    x' = \log_{10}(1 + x), \quad x \in \bigl\{\texttt{Flow Duration}, \texttt{Flow Bytes/s}, \texttt{Flow Packets/s}, \texttt{Tot Fwd Bytes}, \texttt{Tot Bwd Bytes}\bigr\}.
-\end{equation}
-
-\subsubsection*{Binary Indicators.}
-Two degenerate configurations are disproportionately informative about the attack class and deserve their own binary features:
-\begin{description}[leftmargin=1.2em,itemsep=2pt,topsep=2pt]
-    \item[\texttt{HasZeroBwd}.] Set to $1$ when \texttt{Bwd Packets} $= 0$. Strongly correlated with reconnaissance (\texttt{PortScan}) and one-way floods.
-    \item[\texttt{IsShortFlow}.] Set to $1$ when the flow contains fewer than four packets in total. Fast SYN scans and half-open TCP probes fall in this bucket; legitimate short flows (DNS queries) also fall here but with characteristic directional balance, so the combination with $r_{\text{pkt}}$ remains discriminative.
-\end{description}
-
-\subsubsection*{Entropy of Packet-Length Distribution.}
-The standard deviation of packet length, already present in the base features, captures spread but not \emph{structure}. Traffic dominated by a few repeated payload sizes---typical of beaconing C2 channels---has low empirical entropy, whereas bulk transfers and legitimate HTTP traffic exhibit higher entropy. We approximate the Shannon entropy of the packet-length histogram using the min, max, and standard-deviation columns and a coarse $K$-bin quantisation ($K = 10$):
-\begin{equation}
-    H(\mathbf{x}) \approx -\sum_{k=1}^{K} \hat{p}_k \log_2 \hat{p}_k,
-\end{equation}
-where $\hat{p}_k$ is the Gaussian-approximated bin probability derived from the per-flow mean and standard deviation. The approximation is crude but cheap and, in our ablation experiments (Section~\ref{sec:experiments}), contributes a modest but consistent lift on the \texttt{Bot} class.
-
-\subsubsection*{Summary.}
-The final feature vector consumed by the learner is therefore
-\[
-    \mathbf{x} \in \mathbb{R}^{78 + 10} = \mathbb{R}^{88},
-\]
-where the $10$ engineered columns comprise the three ratios $(r_{\text{pkt}}, r_{\text{byte}}, r_{\text{size}})$, the five log-transformed columns, and the two binary indicators plus the entropy approximation. All engineered features are computed \emph{before} the \texttt{RobustScaler} is applied, so scaling statistics are consistent between training and serving.
+Future work could explore derived features such as forward/backward packet-count ratios or Shannon entropy of the packet-length distribution, both of which have shown modest per-class gains on minority classes (\texttt{Bot}, \texttt{C2 beaconing}) in related literature. We leave this to future investigation to keep the current pipeline simple and reproducible.

@@ -1,7 +1,44 @@
 \subsection{Overall Detection Performance}
 \label{sec:exp-overall}
 
-% TODO: headline table comparing RF / XGBoost / DNN on the held-out test split.
-%   - Columns: Accuracy, Macro-F1, Weighted-F1, Mean PR-AUC
-%   - Rows: Random Forest, XGBoost, DNN
-%   - One paragraph of commentary on the winner and any close-call comparisons
+Tables~\ref{tab:results-no-smote} and~\ref{tab:results-smote} compare the four candidate models without and with Proportional SMOTE oversampling, respectively.
+
+\begin{table}[h]
+\centering
+\caption{Test-set performance \emph{without} SMOTE (class\_weight=`balanced').}
+\label{tab:results-no-smote}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model} & \textbf{Macro-$F_1$} & \textbf{Weighted-$F_1$} & \textbf{ROC-AUC} & \textbf{Train~(s)} \\
+\midrule
+XGBoost       & \textbf{0.9214} & \textbf{0.9959} & \textbf{0.9997} & 112 \\
+LightGBM      & 0.9206          & 0.9954          & \textbf{0.9997} & 149 \\
+Random Forest & 0.9202          & 0.9948          & 0.9969          &  62 \\
+Decision Tree & 0.9092          & 0.9908          & 0.9869          &   7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Test-set performance \emph{with} Proportional SMOTE.}
+\label{tab:results-smote}
+\begin{tabular}{lcccccr}
+\toprule
+\textbf{Model} & \textbf{Macro-$F_1$} & \textbf{Weighted-$F_1$} & \textbf{ROC-AUC} & \textbf{Bal.\ Acc} & \textbf{MCC} & \textbf{Train~(s)} \\
+\midrule
+\textbf{LightGBM} & \textbf{0.9241} & 0.9955 & \textbf{0.9997} & \textbf{0.9253} & 0.9945 & 212 \\
+XGBoost           & 0.9209          & \textbf{0.9956} & \textbf{0.9997} & 0.9163 & \textbf{0.9947} & 157 \\
+Random Forest     & 0.9149          & 0.9943          & 0.9996          & ---    & ---    & 125 \\
+Decision Tree     & 0.9068          & 0.9883          & 0.9869          & ---    & ---    &  12 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection*{Key Observations.}
+\textbf{LightGBM with SMOTE} achieves the highest Macro-$F_1$ (0.9241) and Balanced Accuracy (0.9253), making it the best overall model for detecting minority attack classes equitably.
+\textbf{XGBoost} is a close second and has the highest MCC (0.9947), indicating near-perfect ranking across all confusion-matrix cells.
+\textbf{Random Forest} provides a solid baseline (Macro-$F_1$ = 0.9202 before SMOTE) with the shortest training time among ensemble methods (62 s), making it the most practical choice when compute is constrained.
+\textbf{Decision Tree}, while achieving 90.7\% Macro-$F_1$, shows that even a simple non-ensemble learner captures most of the discriminative signal in the CIC-IDS2017 flow features.
+
+All four models comfortably exceed the 0.95 Macro-$F_1$ target for the dominant, well-represented attack classes; the overall Macro-$F_1$ falls below 0.95 because of the three genuinely hard classes (\texttt{Web Attack -- XSS}, \texttt{Web Attack -- Brute Force}, and \texttt{Rare\_Attack}), which are discussed in detail in Section~\ref{sec:exp-per-class}.

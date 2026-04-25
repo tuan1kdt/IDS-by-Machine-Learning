@@ -3,15 +3,19 @@
 \label{sec:conclusion}
 %=======================================================================
 
-This paper presented a comparative study of three machine learning approaches for network intrusion detection: Random Forest, Deep Neural Network, and XGBoost. We evaluated these models on the CIC-IDS 2017 dataset, a modern benchmark containing realistic network traffic with 15 classes of benign and attack traffic.
+This paper presented the design, implementation, and evaluation of an AI-powered network intrusion detection system trained on the CIC-IDS2017 benchmark. We evaluated four machine learning classifiers---LightGBM, XGBoost, Random Forest, and Decision Tree---under two class-imbalance treatment regimes (cost-sensitive weighting alone, and cost-sensitive weighting combined with Proportional SMOTE), reporting Macro-$F_1$, ROC-AUC, Balanced Accuracy, MCC, and per-class Precision/Recall/F1 on a held-out test set of 46,838 flows across 13 classes.
 
-Our key findings are:
+Our key findings are as follows:
+
 \begin{enumerate}
-    \item All three models achieve over 98\% accuracy, confirming the viability of ML-based intrusion detection on flow-level features.
-    \item \textbf{XGBoost} achieves the best overall performance (99.34\% accuracy, 94.21\% Macro F1), particularly excelling at detecting rare attack types through its sequential error-correction mechanism.
-    \item \textbf{Random Forest} provides a strong baseline with minimal tuning effort and valuable feature importance insights for network security analysts.
-    \item \textbf{DNN} underperforms tree-based methods on this structured dataset but offers advantages for raw traffic analysis and scales well to larger datasets.
-    \item \textbf{Class imbalance} remains the primary challenge --- rare attacks (Heartbleed, SQL Injection, Infiltration) have significantly lower detection rates despite SMOTE oversampling.
+    \item \textbf{LightGBM with Proportional SMOTE} achieves the best overall balance between majority and minority class detection, with a Macro-$F_1$ of 0.9241 and Balanced Accuracy of 0.9253. Its histogram-based leaf-wise splitting strategy exploits synthetic samples more effectively than level-wise boosting (XGBoost) or bagging (Random Forest), making it the recommended model for deployments that prioritise equitable detection across all attack types.
+    \item \textbf{XGBoost} is the most stable model (MCC = 0.9947), nearly unaffected by whether SMOTE is applied ($|\Delta\text{Macro-}F_1| < 0.001$), which makes it a safe default choice when the practitioner is uncertain whether oversampling will help.
+    \item \textbf{Six of thirteen classes} (BENIGN, DDoS, DoS Hulk, PortScan, FTP-Patator, SSH-Patator) achieve perfect $F_1 = 1.00$ with LightGBM. These classes all have distinctive flow-level signatures that are well-resolved by tree-based feature partitioning.
+    \item \textbf{Class-imbalance remains the central challenge.} The three classes with fewer than 500 real training samples (Infiltration, SQL Injection, Heartbleed, merged into \texttt{Rare\_Attack}) and the two semantically similar Web Attack sub-types account for all major model failures. Proportional SMOTE provides a useful lift ($+9$--$16$ pp recall on minority classes) but cannot fully overcome the signal deficit when the synthetic fraction exceeds 80--90\%.
+    \item \textbf{All models satisfy the deployment constraints} defined in Section~\ref{sec:problem-statement}: tree-based classifiers achieve $> 30{,}000$ flows/s throughput on commodity CPU and fit within the 512 MB memory budget, making inline deployment on enterprise edge gateways feasible.
 \end{enumerate}
 
-Our methodology --- including careful data preprocessing, feature selection, and handling of class imbalance --- provides a reproducible pipeline for building ML-based IDS. The complete implementation is available as a Python codebase for further research and extension.
+The complete pipeline---data loading, cleaning, stratified sampling, Proportional SMOTE, model training, and evaluation---is implemented in Python with scikit-learn, XGBoost, and LightGBM and is fully reproducible with a fixed random seed of 42.
+
+\subsection*{Future Work}
+Several directions remain open for future investigation. First, the four confusable classes (Web Attack -- XSS, Web Attack -- Brute Force, and the components of Rare\_Attack) would benefit from payload-level or URI-entropy features derived from deep-packet inspection, which would provide the discriminative signal absent at the pure flow level. Second, online/continual learning with periodic model updates would address the concept drift inevitable in real-world deployments. Third, evaluating the trained models against adversarially crafted flows---where an attacker deliberately modulates inter-arrival times or packet sizes to mimic benign traffic---would bound the practical robustness of the current pipeline. Finally, federated training across multiple organizational perimeters, without sharing raw traffic, could improve minority-class coverage while preserving data privacy.

@@ -1,49 +1,6 @@
-\subsection{Real-Time Inference Engine}
+\subsection{Inference and Deployment Considerations}
 \label{sec:inference}
 
-The inference engine is the online counterpart of the training routine of Section~\ref{sec:training}. It is architected to meet the per-flow latency budget ($10\,\text{ms}$ at $p_{99}$) and the sustained throughput requirement ($\ge 10^4$ flows/s) stated in Section~\ref{sec:problem-statement} while reusing every offline-fitted artefact verbatim.
+At deployment time the trained model, the fitted scaler, and the label encoder are serialised to disk and loaded by the inference worker. Each incoming flow record is passed through the same \textsc{EngineerFeatures} and \textsc{Scale} steps that were applied at training time, ensuring that there is no training/serving skew. The trained classifier then emits a class probability vector; the predicted label is the class with the highest probability.
 
-\subsubsection*{Single-Flow Inference Path.}
-Algorithm~\ref{alg:inference} describes the per-flow code path in full. Every step is $O(d)$ or $O(1)$ in the number of features and is implemented as a stateless function so that inference workers can be horizontally replicated behind a load balancer.
-
-\begin{algorithm}[h]
-\caption{Per-flow online inference}
-\label{alg:inference}
-\begin{algorithmic}[1]
-\Input Incoming flow record $\mathbf{x}_{\text{raw}}$; fitted scaler $S$; label encoder $E$; classifier $f_\theta$; thresholds $\boldsymbol{\tau}$.
-\Output Predicted label $\hat{y}$; top-1 confidence $p_{\hat{y}}$; alert flag $a \in \{0,1\}$.
-\Statex
-\State $\mathbf{x} \leftarrow \textsc{ValidateSchema}(\mathbf{x}_{\text{raw}})$ \Comment{reject malformed rows early}
-\State $\mathbf{x} \leftarrow \textsc{EngineerFeatures}(\mathbf{x})$ \Comment{append $10$ columns (Section~\ref{sec:feat-eng})}
-\State $\mathbf{x} \leftarrow S(\mathbf{x})$ \Comment{frozen robust scaler from training}
-\State $\mathbf{p} \leftarrow f_\theta.\textsc{PredictProba}(\mathbf{x})$ \Comment{$C$-vector}
-\State $c^{\star} \leftarrow \arg\max_{c \ge 1} p_c$ \Comment{best non-benign class}
-\If{$p_{c^{\star}} \ge \tau_{c^{\star}}$}
-    \State $\hat{y} \leftarrow E^{-1}(c^{\star})$; $a \leftarrow 1$
-\Else
-    \State $\hat{y} \leftarrow \texttt{BENIGN}$; $a \leftarrow 0$
-\EndIf
-\State \textbf{return} $(\hat{y}, p_{\hat{y}}, a)$
-\end{algorithmic}
-\end{algorithm}
-
-\subsubsection*{Batching for Throughput.}
-Although the per-flow path is conceptually stateless, running the classifier one row at a time wastes the vectorised fast paths of scikit-learn, XGBoost, and TensorFlow. The engine therefore collects incoming flows into a micro-batch of up to $B$ rows (configurable; we use $B = 128$) with a maximum wait of $1\,\text{ms}$ per batch. When either limit is hit, the batch is scored in a single call. The wait cap guarantees that the additional queuing latency is bounded by the wait limit itself and never dominates the $10\,\text{ms}$ per-flow budget. In our lab measurements this policy raises throughput by $6{-}9\times$ over per-flow calls with a negligible $p_{99}$ latency penalty.
-
-\subsubsection*{Feature Caching.}
-All preprocessing artefacts (median/IQR vectors for \texttt{RobustScaler}, the \texttt{LabelEncoder} vocabulary, the list of engineered-column recipes) are loaded once at process start and held in shared read-only memory. This eliminates the cold-start cost that would otherwise dominate the first few seconds of inference and makes autoscaling---spinning up an additional worker behind the load balancer---essentially free.
-
-\subsubsection*{Alert Policy.}
-The engine emits an alert record whenever the flag $a = 1$ is set by Algorithm~\ref{alg:inference}. Alert records carry the flow-identifier metadata, the predicted class, and the top-1 confidence. Downstream SIEM integration is out of scope; the reference implementation simply publishes records to a Kafka topic that the SOC's existing ingestion pipeline subscribes to. A second topic carries the full per-flow prediction stream (including \texttt{BENIGN}) for offline drift monitoring: deviations of the per-class empirical rate from the training-time prior are the earliest observable signal of concept drift.
-
-\subsubsection*{Failure Modes and Fallbacks.}
-Three classes of runtime failure are handled explicitly:
-
-\begin{description}[leftmargin=1.2em,itemsep=2pt,topsep=2pt]
-    \item[Schema violation.] If the incoming flow record fails the schema check (missing column, non-numeric value, \texttt{NaN}/$\pm\infty$ in a column that should be finite), the engine logs a \texttt{schema\_error} counter and forwards the flow to a \emph{bypass} sink that behaves as \texttt{BENIGN} by default. Persistent schema errors trigger an operator alert since they usually indicate a version skew between the flow extractor and the model artefacts.
-    \item[Model load failure.] If the serialised classifier cannot be deserialised at process start (corrupted artefact, incompatible library version), the worker refuses to start and the load balancer keeps routing traffic to the remaining replicas. There is no silent fallback to an older model; that is a deliberate design choice since silent fallbacks complicate post-incident forensics.
-    \item[Latency tail.] The engine continuously samples per-flow inference latency into a tdigest and emits a \texttt{slo\_breach} counter whenever the $p_{99}$ over a rolling 60-second window exceeds the budget. In our experiments we never observed breaches on commodity hardware for any of the three models; the counter is nevertheless retained as a production safety rail.
-\end{description}
-
-\subsubsection*{Calibration with the Training Pipeline.}
-It is worth stressing once more that every step in Algorithm~\ref{alg:inference} is a direct image of a step in Algorithm~\ref{alg:training}: the \textsc{EngineerFeatures} routine is the same function, the scaler is the same object, the label encoder is the same vocabulary, and the classifier is the same serialised artefact. This tight calibration is what makes the per-flow guarantees of Section~\ref{sec:problem-statement} realisable in practice: there is, by construction, no place for training/serving skew to hide.
+As shown in Section~\ref{sec:exp-latency}, all tree-based models achieve $> 30{,}000$ flows per second on a single CPU core, comfortably satisfying the $10^4$ flows/s throughput target. Micro-batching (collecting 128 flows before calling \texttt{predict\_proba} once) raises throughput by $6{-}9\times$ over single-sample calls with negligible additional latency, making batch inference the recommended default for production deployments. The serialised LightGBM model occupies only $\approx 5\,\text{MB}$, enabling co-deployment with the flow extractor on the same gateway host well within the 512 MB resource budget.

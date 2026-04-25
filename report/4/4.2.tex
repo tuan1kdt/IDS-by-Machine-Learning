@@ -1,8 +1,16 @@
-\subsection{Baselines and Metrics}
+\subsection{Evaluation Metrics}
 \label{sec:exp-metrics}
 
-% TODO: recap the evaluation metrics used and the baselines compared against.
-%   - Restate macro-F1, weighted-F1, per-class precision/recall/F1, PR-AUC
-%   - Latency metrics (p50, p99 per-flow inference time)
-%   - Throughput (sustained flows/s)
-%   - Baselines: trivial-BENIGN classifier; signature-based reference (e.g., Snort rule subset)
+We evaluate each model on the held-out test set (46,838 flows) using the following metrics. Because the class distribution remains heavily skewed even after sampling, we treat \textbf{Macro-$F_1$} as the primary model-selection criterion.
+
+\begin{description}[leftmargin=1.2em,itemsep=2pt,topsep=2pt]
+    \item[Accuracy] fraction of correctly classified flows. Misleading under imbalance: a trivial \texttt{BENIGN}-only predictor achieves ${\approx}80\%$ on the raw distribution.
+    \item[Macro-$F_1$] unweighted mean of per-class $F_1$ scores, giving equal importance to minority classes such as \texttt{Bot} and \texttt{Rare\_Attack}.
+    \item[Weighted-$F_1$] class-support-weighted mean of per-class $F_1$ scores; dominated by \texttt{BENIGN} and major attack classes.
+    \item[ROC-AUC (macro OvR)] mean one-vs-rest area under the ROC curve across all classes; measures ranking quality independent of the decision threshold.
+    \item[Balanced Accuracy] mean per-class recall; useful when comparing models across differently shaped confusion matrices.
+    \item[Matthews Correlation Coefficient (MCC)] a single scalar in $[-1, +1]$ that accounts for all four cells of the confusion matrix; robust to both prevalence and class-size differences.
+    \item[Training time] wall-clock training duration on the Colab CPU runtime, reported for practical reproducibility.
+\end{description}
+
+\noindent A \emph{trivial BENIGN baseline} (always predict class~0) is included implicitly: it achieves $\approx$21\% Macro-$F_1$ (recall of~1 for one class, recall of~0 for the other 12), illustrating why accuracy alone is uninformative.

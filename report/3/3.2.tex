@@ -1,7 +1,7 @@
 \subsection{System Architecture Overview}
 \label{sec:arch-overview}
 
-The proposed IDS is organised as a staged pipeline in which each component exposes a narrow data contract to the next, enabling the offline training and online inference paths to share identical preprocessing and feature-engineering logic. Figure~\ref{fig:pipeline} summarises the five logical stages.
+The proposed IDS is organised as a staged pipeline in which each component exposes a narrow data contract to the next, enabling offline training and online inference to share identical preprocessing and feature-engineering logic:
 
 \begin{figure}[h]
 \centering
@@ -14,39 +14,20 @@ The proposed IDS is organised as a staged pipeline in which each component expos
     \node[stage, fill=blue!8]   (capture)  {Traffic\\Capture};
     \node[stage, fill=blue!8,  right=of capture]  (extract)  {Flow\\Extractor};
     \node[stage, fill=green!10, right=of extract]  (prep)     {Preprocessing\\\& Scaling};
-    \node[stage, fill=orange!15, right=of prep]    (model)    {ML Inference\\(RF / XGB / DNN)};
+    \node[stage, fill=orange!15, right=of prep]    (model)    {ML Classifier\\(4 models)};
     \node[stage, fill=red!10,  right=of model]    (alert)    {Alert /\\Log Sink};
 
     \draw[arrow] (capture) -- node[above=-1pt,font=\scriptsize]{pcap} (extract);
     \draw[arrow] (extract) -- node[above=-1pt,font=\scriptsize]{flow row} (prep);
-    \draw[arrow] (prep)    -- node[above=-1pt,font=\scriptsize]{$\mathbf{x}\in\mathbb{R}^{d}$} (model);
+    \draw[arrow] (prep)    -- node[above=-1pt,font=\scriptsize]{$\mathbf{x}\in\mathbb{R}^{78}$} (model);
     \draw[arrow] (model)   -- node[above=-1pt,font=\scriptsize]{$\hat{y}, p$} (alert);
 \end{tikzpicture}
-\caption{End-to-end IDS pipeline. Solid arrows indicate the online data path; the offline training path reuses the green and orange stages on a static corpus.}
+\caption{End-to-end IDS pipeline. The green preprocessing and orange model stages are shared between the offline training path and the online inference path.}
 \label{fig:pipeline}
 \end{figure}
 
-\subsubsection*{Stages.}
-Each stage is a replaceable unit with a well-defined interface:
-
-\begin{description}[leftmargin=1.2em,itemsep=2pt,topsep=2pt]
-    \item[Traffic Capture.] Raw packets are mirrored from a switch SPAN port or tap and written to a rolling PCAP buffer by \texttt{tcpdump} / \texttt{tshark}. For the training corpus this stage is already materialised as the PCAP files shipped with CIC-IDS2017.
-    \item[Flow Extractor.] \textsc{CICFlowMeter}~\cite{ref_cicflowmeter} groups packets into bidirectional flows keyed by the 5-tuple and emits one record per flow containing the 78 numeric features described in Section~\ref{sec:bg-dataset}. A flow is flushed when its idle timeout expires or an explicit FIN/RST is observed.
-    \item[Preprocessing \& Scaling.] Rows with \texttt{NaN}/$\pm\infty$ are dropped, zero-variance columns are removed, and the remaining numeric columns are transformed using a \emph{frozen} \texttt{RobustScaler} whose median and IQR statistics are persisted from the training split (Section~\ref{sec:bg-preproc}). Categorical labels are encoded via a persisted \texttt{LabelEncoder} for training-time consumption.
-    \item[ML Inference.] The scaled feature vector is handed to the active model (Random Forest, XGBoost, or DNN). The model emits a class index $\hat{y}$ and, when supported, a calibrated probability vector $p \in [0,1]^{C}$.
-    \item[Alert / Log Sink.] Non-\texttt{BENIGN} predictions above the per-class confidence threshold (tuned on validation; see Section~\ref{sec:inference}) are forwarded to the SIEM or blocking engine; all predictions are written to a rolling structured log for offline auditing and model-drift analysis.
-\end{description}
-
-\subsubsection*{Offline vs.\ Online Modes.}
-The same implementation artefact serves both modes. In the \emph{offline} mode the pipeline is fed a historical PCAP, the scaler and encoder are \emph{fitted} on the training split, and the learner's \texttt{fit} method consumes the cleaned feature matrix end-to-end. In the \emph{online} mode the scaler and encoder are loaded read-only from the training snapshot, the learner's \texttt{predict} method is invoked per-flow (or per micro-batch; Section~\ref{sec:inference}), and no component of the pipeline performs any stateful update. This symmetry is deliberate---it eliminates the most common failure mode in production ML systems, namely training/serving skew caused by subtly different feature-engineering code paths in the two phases.
-
-\subsubsection*{Data Contracts.}
-Between every two adjacent stages we define a typed contract that is enforced by a lightweight schema validator:
-
-\begin{description}[leftmargin=1.2em,itemsep=2pt,topsep=2pt]
-    \item[Extractor $\to$ Preprocessing:] a named-tuple of 78 numeric fields plus flow-identifier metadata (source/destination IP and port, protocol, timestamp).
-    \item[Preprocessing $\to$ Inference:] a dense \texttt{float32} vector $\mathbf{x} \in \mathbb{R}^{d}$ with $d = 78 + e$, where $e$ is the number of engineered features introduced in Section~\ref{sec:feat-eng}, plus the carried-through flow-identifier metadata.
-    \item[Inference $\to$ Alert Sink:] the flow-identifier metadata, the predicted label $\hat{y}$, and, when available, the top-1 confidence $p_{\hat{y}}$; optionally the full probability vector is persisted for audit.
-\end{description}
-
-This schema-first design means that every stage can be swapped---replacing \textsc{CICFlowMeter} with a bespoke eBPF extractor, or the Random Forest with a newer learner---without touching any upstream or downstream code.
+\textbf{Traffic Capture} mirrors raw packets from a SPAN port and writes them to a rolling PCAP buffer.
+\textbf{Flow Extractor} (\textsc{CICFlowMeter}~\cite{ref_cicflowmeter}) groups packets into bidirectional flows and emits one 78-feature row per flow.
+\textbf{Preprocessing \& Scaling} drops \texttt{NaN}/$\pm\infty$ rows, applies a frozen \texttt{StandardScaler}, and encodes labels.
+\textbf{ML Classifier} scores the scaled feature vector and emits a predicted class and optional confidence.
+\textbf{Alert / Log Sink} forwards non-\texttt{BENIGN} predictions to a SIEM and logs all predictions for offline drift monitoring.

@@ -1,9 +1,61 @@
 \subsection{Experimental Setup}
 \label{sec:exp-setup}
 
-% TODO: describe hardware, software stack, dataset split, random seeds.
-%   - Hardware (CPU, RAM, GPU if any)
-%   - Software (Python version, scikit-learn, XGBoost, TensorFlow versions)
-%   - Dataset split numbers (train / val / test counts per class after stratification)
-%   - SMOTE configuration (k=5 neighbours, applied to train only)
-%   - Random seeds (split, SMOTE, model init)
+\subsubsection*{Computational Environment.}
+All experiments were conducted on Google Colab using a CPU-only runtime (Intel Xeon, 2-core, $\approx$12 GB RAM). No GPU acceleration was used for training or inference; this reflects a realistic deployment scenario on a commodity edge gateway. The software stack is as follows:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Component} & \textbf{Version} \\
+\midrule
+Python             & 3.10 \\
+scikit-learn       & 1.4 \\
+XGBoost            & 2.0 \\
+LightGBM           & 4.3 \\
+imbalanced-learn   & 0.12 \\
+pandas / NumPy     & 2.0 / 1.26 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection*{Dataset and Preprocessing.}
+The raw CIC-IDS2017 corpus was obtained from Kaggle
+(\texttt{chethuhn/network-intrusion-dataset}), which mirrors the original eight PCAP-derived CSV files from the Canadian Institute for Cybersecurity.
+Table~\ref{tab:data-pipeline} summarises the progression of the dataset through each preprocessing stage.
+
+\begin{table}[h]
+\centering
+\caption{Dataset size at each stage of the preprocessing pipeline.}
+\label{tab:data-pipeline}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Stage} & \textbf{Rows} & \textbf{Note} \\
+\midrule
+Raw (8 CSV files)              & 2,830,743 & 79 columns incl.\ label \\
+After Inf/NaN removal          & 2,827,876 & $-5{,}734$ rows \\
+After duplicate removal        & 2,520,798 & $-307{,}078$ rows \\
+After stratified cap (50k/class) & 234,187 & 13 classes, 78 features \\
+\midrule
+Training set (80\%)            & 187,349   & stratified split \\
+Test set (20\%)                & 46,838    & held-out, never seen during training \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection*{Label Consolidation.}
+Three classes with fewer than 500 samples were merged into a single \texttt{Rare\_Attack} pseudo-class: \texttt{Infiltration} (36 flows), \texttt{Web Attack -- SQL Injection} (21 flows), and \texttt{Heartbleed} (11 flows). The resulting label set thus comprises 13 classes: \texttt{BENIGN}, \texttt{Bot}, \texttt{DDoS}, \texttt{DoS GoldenEye}, \texttt{DoS Hulk}, \texttt{DoS Slowhttptest}, \texttt{DoS slowloris}, \texttt{FTP-Patator}, \texttt{PortScan}, \texttt{Rare\_Attack}, \texttt{SSH-Patator}, \texttt{Web Attack -- Brute Force}, and \texttt{Web Attack -- XSS}.
+
+\subsubsection*{Class-Imbalance Handling.}
+We apply a two-stage combined sampling strategy to the training split only:
+
+\begin{enumerate}
+    \item \textbf{Stratified cap}: each class is subsampled to at most 50,000 samples to avoid out-of-memory conditions on the Colab runtime.
+    \item \textbf{Proportional SMOTE}: minority classes are oversampled using a \emph{square-root target} formula designed to avoid generating an unrealistically large proportion of synthetic samples:
+    \begin{equation}
+        N_{\text{target}} = \min\!\left(\sqrt{N_{\text{maj}} \cdot N_{\text{min}}},\; 10 \times N_{\text{min}},\; N_{\text{maj}}\right),
+    \end{equation}
+    where $N_{\text{maj}}$ and $N_{\text{min}}$ are the post-cap counts of the majority and minority class respectively. SMOTE uses $k=5$ nearest neighbours in the training feature space. The target formula guarantees that the synthetic fraction never exceeds $90\%$ for any class, keeping the training signal grounded in real observations.
+\end{enumerate}
+
+\noindent All four models are trained with \texttt{class\_weight=\text{`balanced'}} in addition to SMOTE, except LightGBM which handles class weights internally via \texttt{is\_unbalance=True}. A global random seed of $42$ is used for the train/test split, SMOTE, and all stochastic model components.

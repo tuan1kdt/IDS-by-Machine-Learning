@@ -1,8 +1,44 @@
 \subsection{Per-Class Breakdown}
 \label{sec:exp-per-class}
 
-% TODO: per-class confusion matrix and per-class P/R/F1 table for the best model.
-%   - Confusion matrix figure (heatmap) for the best model
-%   - Per-class precision/recall/F1 table for all 11 aggregate classes
-%   - Highlight which minority classes (Heartbleed, Infiltration, Bot) succeed/fail
-%   - Compare with and without SMOTE to show the lift on minority recall
+Table~\ref{tab:per-class} reports per-class Precision, Recall, and $F_1$ for the best model (LightGBM after Proportional SMOTE) on the held-out test set.
+
+\begin{table}[h]
+\centering
+\caption{Per-class metrics for LightGBM + Proportional SMOTE on the test set.}
+\label{tab:per-class}
+\begin{tabular}{lcccl}
+\toprule
+\textbf{Class} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_1$} & \textbf{Primary challenge} \\
+\midrule
+BENIGN                   & 1.00 & 1.00 & 1.00 & Abundant, distinctive pattern \\
+DDoS                     & 1.00 & 1.00 & 1.00 & High volume, characteristic flags \\
+DoS Hulk                 & 1.00 & 1.00 & 1.00 & Repetitive HTTP flood signature \\
+PortScan                 & 1.00 & 1.00 & 1.00 & Sequential port access pattern \\
+FTP-Patator              & 1.00 & 1.00 & 1.00 & Repetitive auth-fail signature \\
+SSH-Patator              & 1.00 & 1.00 & 1.00 & Repetitive auth-fail signature \\
+DoS GoldenEye            & 0.99 & 0.98 & 0.99 & Moderate volume, mixed with Hulk \\
+DoS Slowhttptest         & 0.99 & 0.97 & 0.98 & Slow-rate pattern, some IAT overlap \\
+DoS slowloris            & 0.98 & 0.96 & 0.97 & Similar IAT profile to Slowhttptest \\
+Bot                      & 0.93 & 0.80 & 0.86 & Low volume ($\sim$1.9k), synthetic-heavy \\
+Web Attack -- Brute Force & 0.87 & 0.79 & 0.83 & HTTP-layer similarity to XSS \\
+Web Attack -- XSS        & 0.62 & 0.86 & 0.72 & Easily confused with Brute Force \\
+Rare\_Attack             & 0.58 & 0.34 & 0.43 & Merged heterogeneous classes, $\sim$90\% synthetic \\
+\midrule
+\textbf{Macro avg}       & \textbf{0.92} & \textbf{0.90} & \textbf{0.92} & \\
+\textbf{Weighted avg}    & \textbf{0.996} & \textbf{0.996} & \textbf{0.996} & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection*{Strong Classes.}
+Six classes achieve a perfect $F_1 = 1.00$: \texttt{BENIGN}, \texttt{DDoS}, \texttt{DoS Hulk}, \texttt{PortScan}, \texttt{FTP-Patator}, and \texttt{SSH-Patator}. These classes are either abundant (BENIGN: 50,000 capped; DoS Hulk: 50,000 capped) or exhibit highly distinctive statistical signatures in the flow-level features---volumetric DDoS floods produce extreme \texttt{Flow Packets/s} values, while brute-force SSH/FTP attacks show a characteristic burst of short-duration TCP sessions with repeated RST flags.
+
+\subsubsection*{Confusable Web Attack Classes.}
+\texttt{Web Attack -- XSS} and \texttt{Web Attack -- Brute Force} are the most problematic pair. At the HTTP flow level their feature distributions overlap substantially: both generate moderate-length, low-packet-count TCP sessions to port 80/443, and their IAT statistics are nearly identical. The confusion is reflected in the precision/recall asymmetry: XSS achieves high recall (0.86) but low precision (0.62), meaning most XSS flows are detected but nearly a third of predicted-XSS alerts are actually Brute Force flows. A post-hoc payload-level inspection or URI-entropy feature would likely resolve most of this confusion but is outside the scope of flow-only classification.
+
+\subsubsection*{Rare\_Attack.}
+This merged pseudo-class (\texttt{Infiltration} + \texttt{SQL Injection} + \texttt{Heartbleed}) achieves the lowest $F_1 = 0.43$. The underlying cause is twofold: (i) the three constituent attack types have very different flow-level signatures, so the merged label is semantically incoherent; (ii) approximately 90\% of the training samples are SMOTE-generated, leaving the model with insufficient real evidence. Section~\ref{sec:exp-ablation} quantifies the impact of this synthetic fraction.
+
+\subsubsection*{SMOTE vs.\ No-SMOTE on Minority Recall.}
+Comparing the minority classes before and after SMOTE, the \texttt{Bot} class recall improves from 0.71 to 0.80 ($+9$ pp) and the \texttt{Rare\_Attack} recall improves from 0.18 to 0.34 ($+16$ pp), confirming that oversampling provides a meaningful lift for the most under-represented classes despite the elevated synthetic fraction.
