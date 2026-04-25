@@ -1,0 +1,18 @@
+\subsection{Quy trình Huấn luyện}
+\label{sec:training}
+
+Quy trình huấn luyện tuân theo một giao thức không rò rỉ (no-leakage) nghiêm ngặt: tất cả các phép biến đổi làm thay đổi dữ liệu (làm sạch, chia tỷ lệ, SMOTE) chỉ được khớp (fitted) riêng trên tập huấn luyện và được áp dụng mà không cần khớp lại cho các tập xác thực và kiểm tra. Điều này giúp loại bỏ hai nguồn phổ biến nhất gây lạm phát điểm số trên CIC-IDS2017: bộ chia tỷ lệ được khớp trên toàn bộ Dataset (làm rò rỉ số liệu thống kê kiểm tra) và SMOTE được áp dụng trước khi chia (làm rò rỉ các điểm kiểm tra tổng hợp bắt nguồn từ dữ liệu huấn luyện).
+
+Quy trình ngoại tuyến diễn ra như sau:
+\begin{enumerate}
+    \item \textbf{Làm sạch (Clean)}: loại bỏ các hàng chứa \texttt{NaN} hoặc $\pm\infty$; loại bỏ các bản sao chính xác.
+    \item \textbf{Lấy mẫu (Sample)}: giới hạn mỗi lớp ở mức 50.000 hàng; gộp các lớp có dưới 500 mẫu vào \texttt{Rare\_Attack}.
+    \item \textbf{Chia tập (Split)}: Chia theo phân tầng 80/20 train/test (random seed 42).
+    \item \textbf{Chuẩn hóa (Scale)}: Khớp \texttt{StandardScaler} chỉ trên các đặc trưng huấn luyện; chuyển đổi cả hai tập.
+    \item \textbf{Mã hóa (Encode)}: Khớp \texttt{LabelEncoder} trên các nhãn huấn luyện; chuyển đổi cả hai tập.
+    \item \textbf{SMOTE}: áp dụng Proportional SMOTE (Phần~\ref{sec:exp-setup}) chỉ vào tập huấn luyện.
+    \item \textbf{Huấn luyện (Train)}: khớp cả bốn bộ phân loại trên tập huấn luyện được tăng cường với \texttt{class\_weight=balanced}.
+    \item \textbf{Đánh giá (Evaluate)}: tính điểm mỗi mô hình trên tập kiểm tra độc lập; báo cáo Macro-$F_1$, ROC-AUC, MCC và Độ chính xác cân bằng.
+\end{enumerate}
+
+Không có tìm kiếm siêu tham số nào ngoài các cài đặt mặc định được mô tả trong Phần~\ref{sec:model-design} được thực hiện; mục tiêu là một đánh giá duy nhất (single-seed), có thể tái tạo nhằm so sánh công bằng bốn bộ phân loại trong các điều kiện giống hệt nhau.

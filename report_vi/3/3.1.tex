@@ -1,0 +1,25 @@
+\subsection{Phát biểu Bài toán}
+\label{sec:problem-statement}
+
+Chúng tôi tiếp cận việc phát hiện xâm nhập như một bài toán \emph{phân loại đa lớp, cấp độ Flow, có giám sát} được giải quyết trong thời gian gần thực. Gọi $\mathcal{F}$ biểu thị quần thể các Flow mạng hai chiều được tạo bởi trình trích xuất \textsc{CICFlowMeter} trên một mạng được giám sát. Mỗi Flow $\mathbf{x} \in \mathcal{F}$ được tóm tắt bằng một Feature Vector $\mathbf{x} \in \mathbb{R}^{d}$ với $d = 78$ trong lược đồ CIC-IDS2017 gốc (được mở rộng trong Phần~\ref{sec:feat-eng}). Không gian nhãn là $\mathcal{Y} = \{0, 1, \ldots, C{-}1\}$, trong đó lớp $0$ biểu thị lưu lượng \texttt{BENIGN} (bình thường) và $C{-}1$ lớp còn lại tương ứng với các danh mục tấn công tổng hợp được liệt kê trong Bảng~\ref{tab:class-dist}.
+
+IDS phải học một bộ phân loại $f_	heta : \mathbb{R}^{d} 	o \mathcal{Y}$ từ một kho ngữ liệu huấn luyện được gắn nhãn $\mathcal{D}_{\text{train}} \subset \mathcal{F} \times \mathcal{Y}$ để giảm thiểu rủi ro dự kiến trên phân phối Flow cơ bản. Hai chế độ hoạt động cùng tồn tại:
+
+\begin{description}[leftmargin=1.2em,itemsep=2pt,topsep=2pt]
+    \item[Huấn luyện ngoại tuyến (Offline training).] $f_	heta$ được khớp trên một bản chụp tĩnh, được gắn nhãn đầy đủ. Bước huấn luyện không có ràng buộc về thời gian thực và được phép sử dụng từ hàng chục phút đến vài giờ tính toán, bao gồm kiểm tra chéo phân tầng và tìm kiếm siêu tham số.
+    \item[Suy luận trực tuyến (Online inference).] Khi triển khai, $f_	heta$ nhận một Flow dữ liệu liên tục các Flow $\mathbf{x}_1, \mathbf{x}_2, \ldots$ do trình trích xuất Flow trực tiếp tạo ra. Đối với mỗi $\mathbf{x}_t$ đến, hệ thống phải đưa ra một dự đoán $\hat{y}_t = f_	heta(\mathbf{x}_t)$ trong một ngân sách độ trễ nghiêm ngặt trên mỗi Flow để các hành động cảnh báo và chặn ở hạ lưu vẫn kịp thời.
+\end{description}
+
+\subsubsection*{Các Ràng buộc Hoạt động.}
+IDS được đề xuất nhắm đến các yêu cầu sau, bắt nguồn từ các kịch bản triển khai trực tiếp (inline) điển hình trên các gateway biên của doanh nghiệp:
+
+\begin{description}[leftmargin=1.2em,itemsep=2pt,topsep=2pt]
+    \item[Chất lượng phát hiện.] Macro-$F_1$ trên tất cả $C$ lớp phải đạt ít nhất $0.95$ trên tập kiểm tra độc lập, đảm bảo rằng các danh mục tấn công thiểu số như \texttt{Bot} hoặc \texttt{Web Attack} không bị đánh đổi ngầm để lấy độ chính xác của lưu lượng bình thường.
+    \item[Tỷ lệ False Positive (FPR).] FPR trên các Flow bình thường không được vượt quá $1\%$. Vượt qua ngưỡng này, lượng cảnh báo sẽ làm quá tải các nhà phân tích con người và tạo ra sự mệt mỏi vì cảnh báo, đây là chế độ lỗi hoạt động chủ đạo của các đợt triển khai IDS trong thế giới thực.
+    \item[Độ trễ mỗi Flow.] Độ trễ suy luận đầu cuối---được đo từ lúc trình trích xuất Flow phát ra một bản ghi Flow hoàn chỉnh đến lúc dự đoán có sẵn cho các tác vụ hạ lưu---không được vượt quá $10\,\text{ms}$ ở phân vị thứ $99$ trên phần cứng thông thường (CPU x86 8 lõi, không có GPU).
+    \item[Thông lượng.] Thông lượng duy trì phải đạt ít nhất $10^4$ Flow mỗi giây trên một worker suy luận duy nhất, mức này đủ cho một liên kết 10\,Gbps với kích thước Flow trung bình đại diện cho CIC-IDS2017.
+    \item[Dấu chân tài nguyên.] Mô hình được tuần tự hóa, các tạo tác (artefacts) của bộ chia tỷ lệ/mã hóa và các bộ đệm đặc trưng thời gian chạy phải cùng nhau chiếm ít hơn $512\,\text{MB}$ bộ nhớ thường trú (resident memory), cho phép triển khai đồng thời với trình trích xuất Flow trên cùng một máy chủ gateway.
+\end{description}
+
+\subsubsection*{Giả định và Các mục tiêu không hướng tới.}
+Chúng tôi giả định rằng trình trích xuất Flow thượng nguồn tạo ra các bản ghi đặc trưng hoàn chỉnh, được định dạng tốt với độ lệch (skew) có giới hạn giữa huấn luyện và phục vụ (\emph{không} xử lý trôi dạt khái niệm trong phiên bản hiện tại; xem Phần~\ref{sec:bg-network} để thảo luận liên quan). Chúng tôi cũng giả định rằng tập huấn luyện đại diện cho hỗn hợp lưu lượng hoạt động; sự thay đổi phân phối đáng kể sẽ làm mất hiệu lực mô hình được khớp ngoại tuyến và thúc đẩy các phần mở rộng học liên tục được thảo luận trong phần kết luận của chúng tôi. Việc chủ động lẩn tránh đối kháng---nơi những kẻ tấn công cố tình tạo ra các Flow để bị phân loại sai---được thừa nhận nhưng nằm ngoài phạm vi của báo cáo này.

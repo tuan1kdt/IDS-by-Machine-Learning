@@ -1,0 +1,22 @@
+\subsection{Tiền xử lý Dữ liệu}
+\label{sec:bg-preproc}
+
+Các bản ghi cấp độ Flow thô không thể được tiêu thụ trực tiếp bởi hầu hết các thuật toán học. Chúng tôi giải quyết bốn mối quan tâm về tiền xử lý: làm sạch dữ liệu, chuẩn hóa, mã hóa nhãn và xử lý mất cân bằng lớp.
+
+\subsubsection*{Làm sạch Dữ liệu.}
+Chúng tôi loại bỏ các hàng chứa các giá trị \texttt{NaN} hoặc $\pm\infty$, loại bỏ các Flow trùng lặp chính xác và loại bỏ các cột có phương sai bằng 0. Sau khi làm sạch, khoảng 99,6\% trong số 2,83 triệu bản ghi ban đầu vẫn còn.
+
+\subsubsection*{Chuẩn hóa và Mã hóa Nhãn.}
+Các đặc trưng của CIC-IDS2017 trải rộng trên nhiều cấp độ lớn (orders of magnitude). Các bộ học dựa trên cây (Random Forest, XGBoost, LightGBM) bất biến với sự thay đổi tỷ lệ đơn điệu và chỉ yêu cầu bộ chia tỷ lệ (scaler) được khớp trên tập huấn luyện và áp dụng đóng băng (frozen) cho dữ liệu kiểm tra. Chúng tôi sử dụng \texttt{StandardScaler} (chuẩn hóa Z-score) làm mặc định. Các nhãn phân loại được mã hóa thành các số nguyên thông qua \texttt{LabelEncoder} của scikit-learn chỉ được khớp trên các nhãn huấn luyện.
+
+\subsubsection*{Xử lý Mất cân bằng Lớp.}
+CIC-IDS2017 bị chi phối bởi lưu lượng bình thường (benign) ($\approx 80\%$); các mô hình được huấn luyện ngây thơ sẽ sụp đổ thành bộ phân loại dự đoán \texttt{BENIGN} tầm thường. Hai chiến lược bổ sung được kết hợp trong quy trình của chúng tôi:
+
+\begin{description}[leftmargin=1.2em,itemsep=2pt,topsep=2pt]
+    \item[Trọng số nhạy cảm với chi phí (Cost-sensitive weighting).] Tất cả các mô hình được huấn luyện với \texttt{class\_weight='balanced'}, gán lại trọng số cho mỗi mẫu huấn luyện theo tần suất nghịch đảo của lớp của nó. Phương pháp này chi phí thấp và không yêu cầu thay đổi dữ liệu.
+    \item[Lấy mẫu tăng cường SMOTE~\cite{ref_smote}.] Các lớp thiểu số được tăng cường với các mẫu tổng hợp được tạo bằng cách nội suy giữa một mẫu thuộc lớp thiểu số và một trong $k$ láng giềng gần nhất của nó trong Feature Space:
+    \begin{equation}
+        \mathbf{x}_{\text{new}} = \mathbf{x}_i + \lambda \cdot (\mathbf{x}_{j} - \mathbf{x}_i), \quad \lambda \sim \mathcal{U}(0,1).
+    \end{equation}
+    Chúng tôi áp dụng Proportional SMOTE (Phần~\ref{sec:exp-setup}) \emph{chỉ vào tập huấn luyện}, để các số liệu kiểm tra được báo cáo phản ánh sự phân phối hoạt động không được tăng cường.
+\end{description}

@@ -1,0 +1,16 @@
+\subsection{Các số liệu Đánh giá}
+\label{sec:exp-metrics}
+
+Chúng tôi đánh giá mỗi mô hình trên tập kiểm tra độc lập (46.838 Flow) bằng cách sử dụng các số liệu sau. Do sự phân phối lớp vẫn bị lệch nặng ngay cả sau khi lấy mẫu, chúng tôi coi \textbf{Macro-$F_1$} là tiêu chí lựa chọn mô hình chính.
+
+\begin{description}[leftmargin=1.2em,itemsep=2pt,topsep=2pt]
+    \item[Accuracy (Độ chính xác)] phần trăm các Flow được phân loại đúng. Gây hiểu lầm khi mất cân bằng: một bộ dự đoán chỉ-\texttt{BENIGN} tầm thường đạt được ${\approx}80\%$ trên phân phối thô.
+    \item[Macro-$F_1$] giá trị trung bình không trọng số của các điểm $F_1$ theo lớp, mang lại tầm quan trọng như nhau cho các lớp thiểu số như \texttt{Bot} và \texttt{Rare\_Attack}.
+    \item[Weighted-$F_1$] giá trị trung bình có trọng số theo hỗ trợ lớp (class-support) của các điểm $F_1$ theo lớp; bị chi phối bởi \texttt{BENIGN} và các lớp tấn công chính.
+    \item[ROC-AUC (macro OvR)] diện tích trung bình dưới đường cong ROC theo phương pháp một-vs-phần còn lại (one-vs-rest) trên tất cả các lớp; đo lường chất lượng xếp hạng độc lập với ngưỡng quyết định.
+    \item[Balanced Accuracy (Độ chính xác Cân bằng)] giá trị recall trung bình theo lớp; hữu ích khi so sánh các mô hình qua các ma trận nhầm lẫn có hình dạng khác nhau.
+    \item[Hệ số Tương quan Matthews (MCC)] một đại lượng vô hướng duy nhất trong $[-1, +1]$ tính đến cả bốn ô của ma trận nhầm lẫn; mạnh mẽ trước cả sự phổ biến (prevalence) và sự khác biệt về quy mô lớp.
+    \item[Training time (Thời gian huấn luyện)] thời lượng huấn luyện theo đồng hồ treo tường trên runtime Colab CPU, được báo cáo để có khả năng tái tạo thực tế.
+\end{description}
+
+\noindent Một \emph{đường cơ sở BENIGN tầm thường} (luôn dự đoán lớp 0) được bao gồm ngầm định: nó đạt Macro-$F_1$ khoảng 21\% (recall là 1 đối với một lớp, recall là 0 đối với 12 lớp còn lại), minh họa lý do tại sao độ chính xác (accuracy) đơn thuần lại không cung cấp nhiều thông tin.

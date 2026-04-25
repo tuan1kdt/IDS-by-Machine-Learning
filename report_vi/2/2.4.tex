@@ -1,0 +1,22 @@
+\subsection{Cơ sở Machine Learning}
+\label{sec:bg-ml}
+
+\subsubsection*{Các họ mô hình ứng viên.}
+Chúng tôi đánh giá bốn bộ học bao gồm phổ cây quyết định (decision-tree) và tăng cường (boosting) cổ điển:
+\begin{description}[leftmargin=1.2em,itemsep=2pt,topsep=2pt]
+    \item[Random Forest (RF)]~\cite{ref_rf} là một tập hợp các cây quyết định được huấn luyện trên các mẫu bootstrap với việc lấy mẫu con các đặc trưng tại mỗi lần phân tách. Nó mạnh mẽ trước các giá trị ngoại lai và bất biến với việc đổi tỷ lệ đặc trưng đơn điệu.
+    \item[XGBoost]~\cite{ref_xgboost} xây dựng một tập hợp cộng gộp các cây nông được khớp tuần tự với các giả thặng dư (pseudo-residuals) của mô hình hiện tại. Nó mang lại kết quả tiên tiến trên dữ liệu dạng bảng và hỗ trợ các mục tiêu được điều chuẩn cho các mục tiêu mất cân bằng.
+    \item[LightGBM]~\cite{ref_lightgbm} là một framework tăng cường gradient dựa trên biểu đồ (histogram-based) phát triển các cây theo chiều lá (leaf-wise) thay vì theo mức (level-wise), giảm thời gian huấn luyện và bộ nhớ. Chiến lược phân chia biểu đồ của nó làm cho nó đặc biệt hiệu quả trên các Feature Matrix lớn và nhạy cảm với các mẫu SMOTE tổng hợp gần ranh giới các lớp.
+    \item[Cây quyết định (Decision Tree - DT)] là một cây CART duy nhất chưa được cắt tỉa, được đưa vào dưới dạng giới hạn dưới có thể diễn giải được, nhằm làm nổi bật giá trị gia tăng của việc sử dụng tập hợp (ensembling).
+\end{description}
+
+\subsubsection*{Chia tập Huấn luyện / Kiểm tra.}
+Chúng tôi sử dụng phân tách phân tầng \textbf{80/20} (random seed 42): 80\% để huấn luyện (bao gồm cả tăng cường SMOTE) và 20\% làm tập kiểm tra độc lập được báo cáo chính xác một lần.
+
+\subsubsection*{Các số liệu Đánh giá.}
+Vì sự phân phối lớp vẫn bị lệch nặng sau khi lấy mẫu, \textbf{Macro-$F_1$} là tiêu chí lựa chọn mô hình chính---nó đánh trọng số mọi lớp như nhau bất kể số lượng mẫu. Chúng tôi cũng báo cáo Weighted-$F_1$, ROC-AUC (macro one-vs-rest), Độ chính xác cân bằng (Balanced Accuracy) và MCC. Nếu chỉ dùng Accuracy thì sẽ gây hiểu lầm: một bộ phân loại chỉ dự đoán \texttt{BENIGN} tầm thường đạt được độ chính xác $\approx 80\%$ trong khi phát hiện được 0 cuộc tấn công.
+
+Điểm $F_1$ cho mỗi lớp có nguồn gốc từ precision và recall tiêu chuẩn:
+\begin{equation}
+    F_{1,c} = \frac{2 \cdot \text{Precision}_c \cdot \text{Recall}_c}{\text{Precision}_c + \text{Recall}_c}, \qquad \text{Macro-}F_1 = \frac{1}{C}\sum_{c=1}^{C} F_{1,c}.
+\end{equation}

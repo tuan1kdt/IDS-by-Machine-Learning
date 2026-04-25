@@ -1,0 +1,19 @@
+\subsection{Thiết kế Mô hình}
+\label{sec:model-design}
+
+Phần~\ref{sec:bg-ml} đã giới thiệu bốn bộ học ứng viên ở cấp độ khái niệm. Bây giờ chúng tôi chỉ định các cấu hình cụ thể của chúng được sử dụng trong đánh giá thực nghiệm của Phần~\ref{sec:experiments}. Tất cả các mô hình đều tiêu thụ cùng một Feature Vector $78$ chiều do CICFlowMeter tạo ra và đưa ra dự đoán phân loại trên $C = 13$ lớp.
+
+\subsubsection*{Random Forest (RF).}
+Sử dụng \texttt{RandomForestClassifier} của scikit-learn với \texttt{n\_estimators}=200, \texttt{max\_features}=$\sqrt{d}$, \texttt{class\_weight}=\texttt{balanced\_subsample}, độ sâu không giới hạn. Tùy chọn \texttt{balanced\_subsample} gán lại trọng số cho mỗi mẫu bootstrap sao cho các lớp thiểu số đóng góp theo tỷ lệ mà không tính đúp các mẫu do SMOTE tạo ra.
+
+\subsubsection*{XGBoost.}
+\texttt{XGBClassifier} với \texttt{objective}=\texttt{multi:softprob}, \texttt{n\_estimators}=500, \texttt{max\_depth}=8, \texttt{learning\_rate}=0.1, \texttt{subsample}=0.8, \texttt{colsample\_bytree}=0.8, điều chuẩn L2 (L2 regularisation) $\lambda=1.0$, tìm kiếm phân tách bằng biểu đồ (\texttt{tree\_method}=\texttt{hist}). Mất cân bằng lớp được xử lý qua vector trọng số mẫu $w_i = N / (C \cdot n_{y_i})$ áp dụng bổ sung cho SMOTE.
+
+\subsubsection*{LightGBM.}
+\texttt{LGBMClassifier} với \texttt{n\_estimators}=500, \texttt{max\_depth}=8, \texttt{learning\_rate}=0.1, \texttt{num\_leaves}=63, \texttt{is\_unbalance}=\texttt{True}. Chiến lược phát triển theo chiều lá (leaf-wise) và tạo thùng (binning) dựa trên biểu đồ của LightGBM giúp nó nhanh hơn đáng kể so với XGBoost trên các Feature Matrix rộng và nhạy cảm hơn với các mẫu tổng hợp gần ranh giới lớp---một lợi thế trên dữ liệu huấn luyện được tăng cường bằng SMOTE.
+
+\subsubsection*{Cây quyết định (Decision Tree - DT).}
+Sử dụng \texttt{DecisionTreeClassifier} của scikit-learn với độ sâu không giới hạn, tiêu chí tạp chất Gini và \texttt{class\_weight}=\texttt{balanced}. Nó đóng vai trò như một giới hạn dưới nhanh chóng, có thể diễn giải được để định lượng giá trị gia tăng của việc sử dụng tập hợp (ensembling).
+
+\subsubsection*{Tại sao lại là Bốn Mô hình?}
+Bốn bộ học cho phép thực hiện ba so sánh có mục tiêu: (i) cây đơn vs.\ lấy mẫu có hoàn lại (bagging) (DT vs.\ RF) để cô lập độ lợi của tập hợp; (ii) bagging vs.\ tăng cường (boosting) (RF vs.\ XGBoost) để so sánh các chiến lược tổng hợp; và (iii) tăng cường theo mức vs.\ theo lá (XGBoost vs.\ LightGBM) để đánh giá tác động của chiến lược phát triển dưới dữ liệu huấn luyện được tăng cường bằng SMOTE.

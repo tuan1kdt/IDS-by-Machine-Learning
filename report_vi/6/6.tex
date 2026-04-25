@@ -1,0 +1,21 @@
+%=======================================================================
+\section{Kết luận}
+\label{sec:conclusion}
+%=======================================================================
+
+Bài báo này đã trình bày thiết kế, triển khai và đánh giá một hệ thống phát hiện xâm nhập mạng ứng dụng AI được huấn luyện trên Dataset chuẩn CIC-IDS2017. Chúng tôi đã đánh giá bốn bộ phân loại Machine Learning---LightGBM, XGBoost, Random Forest và Decision Tree---trong hai chế độ xử lý mất cân bằng lớp (chỉ áp dụng trọng số nhạy cảm với chi phí và trọng số nhạy cảm với chi phí kết hợp với Proportional SMOTE), báo cáo Macro-$F_1$, ROC-AUC, Độ chính xác cân bằng (Balanced Accuracy), MCC và Precision/Recall/F1 cho từng lớp trên một tập kiểm tra độc lập gồm 46.838 Flow trên 13 lớp.
+
+Những phát hiện chính của chúng tôi như sau:
+
+\begin{enumerate}
+    \item \textbf{LightGBM với Proportional SMOTE} đạt được sự cân bằng tổng thể tốt nhất giữa việc phát hiện lớp đa số và lớp thiểu số, với Macro-$F_1$ là 0.9241 và Độ chính xác cân bằng là 0.9253. Chiến lược phân tách theo lá (leaf-wise) dựa trên biểu đồ (histogram) của nó khai thác các mẫu tổng hợp hiệu quả hơn so với tăng cường theo mức (level-wise boosting) (XGBoost) hoặc lấy mẫu có hoàn lại (bagging) (Random Forest), làm cho nó trở thành mô hình được đề xuất cho các triển khai ưu tiên khả năng phát hiện công bằng trên tất cả các loại tấn công.
+    \item \textbf{XGBoost} là mô hình ổn định nhất (MCC = 0.9947), gần như không bị ảnh hưởng bởi việc áp dụng SMOTE hay không ($|\Delta\text{Macro-}F_1| < 0.001$), điều này khiến nó trở thành lựa chọn mặc định an toàn khi người thực hành không chắc chắn liệu việc lấy mẫu tăng cường có mang lại lợi ích hay không.
+    \item \textbf{Sáu trong số mười ba lớp} (BENIGN, DDoS, DoS Hulk, PortScan, FTP-Patator, SSH-Patator) đạt $F_1 = 1.00$ hoàn hảo với LightGBM. Tất cả các lớp này đều có các đặc trưng mức Flow đặc biệt được phân giải tốt bằng cách phân vùng đặc trưng dựa trên cây.
+    \item \textbf{Mất cân bằng lớp vẫn là thách thức trọng tâm.} Ba lớp có ít hơn 500 mẫu huấn luyện thực (Infiltration, SQL Injection, Heartbleed, được gộp chung vào \texttt{Rare\_Attack}) và hai loại Web Attacks phụ tương tự về mặt ngữ nghĩa chiếm tất cả các lỗi mô hình lớn. Proportional SMOTE cung cấp một mức tăng hữu ích (recall tăng $+9$--$16$ phần trăm trên các lớp thiểu số) nhưng không thể khắc phục hoàn toàn sự thiếu hụt tín hiệu khi tỷ lệ tổng hợp vượt quá 80--90\%.
+    \item \textbf{Tất cả các mô hình đều thỏa mãn các ràng buộc triển khai} được định nghĩa ở Phần~\ref{sec:problem-statement}: các bộ phân loại dựa trên cây đạt thông lượng $> 30{.}000$ Flow/s trên CPU thông thường và vừa vặn trong ngân sách bộ nhớ 512 MB, khiến việc triển khai trực tiếp (inline) trên các gateway biên doanh nghiệp trở nên khả thi.
+\end{enumerate}
+
+Toàn bộ quy trình---tải dữ liệu, làm sạch, lấy mẫu phân tầng, Proportional SMOTE, huấn luyện mô hình và đánh giá---được triển khai bằng Python với scikit-learn, XGBoost và LightGBM và có thể tái tạo hoàn toàn với một seed ngẫu nhiên cố định là 42.
+
+\subsection*{Hướng phát triển trong tương lai}
+Một số hướng nghiên cứu vẫn còn mở cho tương lai. Đầu tiên, bốn lớp dễ nhầm lẫn (Web Attack -- XSS, Web Attack -- Brute Force, và các thành phần của Rare\_Attack) sẽ được hưởng lợi từ các đặc trưng cấp độ Payload (payload-level) hoặc độ biểu đồ entropy (URI-entropy) bắt nguồn từ Deep-Packet Inspection (DPI), điều này sẽ cung cấp tín hiệu phân biệt không có ở cấp độ Flow thuần túy. Thứ hai, Online/Continuous Learning với các bản cập nhật mô hình định kỳ sẽ giải quyết được sự trôi dạt khái niệm (concept drift) tất yếu trong các triển khai trong thế giới thực. Thứ ba, việc đánh giá các mô hình được huấn luyện đối phó với các Flow được tạo ra có chủ ý (adversarial flows)---trong đó kẻ tấn công cố tình thay đổi thời gian xuất hiện (inter-arrival times) hoặc kích thước Packet để bắt chước lưu lượng bình thường---sẽ xác định được giới hạn độ mạnh mẽ thực tế của quy trình hiện tại. Cuối cùng, huấn luyện liên kết (federated training) qua nhiều chu vi tổ chức, mà không chia sẻ lưu lượng truy cập thô, có thể cải thiện phạm vi phủ sóng của lớp thiểu số trong khi vẫn bảo vệ được quyền riêng tư của dữ liệu.

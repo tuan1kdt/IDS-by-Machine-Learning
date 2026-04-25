@@ -1,0 +1,20 @@
+\subsection{Hạn chế}
+
+Mặc dù kết quả thực nghiệm của chúng tôi chứng minh độ chính xác phát hiện cao, một số hạn chế cần được thừa nhận:
+
+\begin{itemize}
+    \item \textbf{Độ chệch của Dataset (Dataset bias)}: Dataset CIC-IDS 2017, mặc dù thực tế hơn so với KDD Cup 99, được tạo ra trong một môi trường phòng thí nghiệm được kiểm soát. Lưu lượng mạng trong thế giới thực thể hiện sự đa dạng và nhiễu lớn hơn.
+    \item \textbf{Trôi dạt khái niệm (Concept drift)}: Các mẫu lưu lượng mạng phát triển theo thời gian khi các ứng dụng và giao thức mới xuất hiện. Các mô hình được huấn luyện trên dữ liệu năm 2017 có thể bị suy giảm hiệu suất trên lưu lượng hiện tại nếu không được huấn luyện lại định kỳ.
+    \item \textbf{Độ mạnh mẽ đối kháng (Adversarial robustness)}: Những kẻ tấn công tinh vi có thể tạo ra lưu lượng được thiết kế đặc biệt để qua mặt các bộ phân loại ML. Chúng tôi chưa đánh giá độ mạnh mẽ đối kháng trong nghiên cứu này.
+    \item \textbf{Phát hiện tấn công hiếm gặp}: Bất chấp việc sử dụng SMOTE, các lớp có rất ít mẫu (Heartbleed: 11 Flow, Infiltration: 36 Flow) vẫn khó có thể được phát hiện một cách đáng tin cậy.
+\end{itemize}
+
+\subsection{Hướng Phát triển trong Tương lai}
+
+\begin{enumerate}
+    \item \textbf{Triển khai thời gian thực}: Tích hợp các mô hình đã được huấn luyện vào một quy trình chụp Packet (ví dụ: với Scapy hoặc CICFlowMeter) để phân loại lưu lượng trực tiếp.
+    \item \textbf{Học liên kết (Federated learning)}: Huấn luyện các mô hình IDS qua nhiều tổ chức mà không chia sẻ dữ liệu lưu lượng thô, bảo vệ quyền riêng tư trong khi vẫn được hưởng lợi từ các mẫu tấn công đa dạng.
+    \item \textbf{Tập hợp của các tập hợp (Ensemble of ensembles)}: Kết hợp các dự đoán của Random Forest, XGBoost và DNN thông qua xếp chồng (stacking) hoặc bỏ phiếu (voting) để tận dụng thế mạnh của từng mô hình.
+    \item \textbf{Huấn luyện đối kháng (Adversarial training)}: Tăng cường dữ liệu huấn luyện bằng các mẫu đối kháng để cải thiện độ mạnh mẽ của mô hình chống lại các cuộc tấn công lẩn tránh.
+    \item \textbf{Học chuyển giao (Transfer learning)}: Huấn luyện trước các mô hình trên các Dataset công khai lớn và tinh chỉnh trên lưu lượng dành riêng cho tổ chức để giảm yêu cầu về dữ liệu được gắn nhãn.
+\end{enumerate}

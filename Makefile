@@ -20,37 +20,38 @@
 # --- Configurable knobs ---------------------------------------------------
 LATEX       ?= pdflatex
 LATEXFLAGS  ?= -interaction=nonstopmode -halt-on-error
+REPORT_DIR   = report
 MAIN         = main
-SECTIONS     = 1 2 3 4
-SRC          = $(MAIN).tex \
-               $(foreach s,$(SECTIONS),$(wildcard $(s)/*.tex)) \
-               llncs.cls splncs04.bst
+SECTIONS     = 1 2 3 4 5 6
+SRC          = $(REPORT_DIR)/$(MAIN).tex \
+               $(foreach s,$(SECTIONS),$(wildcard $(REPORT_DIR)/$(s)/*.tex)) \
+               $(REPORT_DIR)/llncs.cls $(REPORT_DIR)/splncs04.bst
 
 # --- Default target -------------------------------------------------------
 .PHONY: all
-all: $(MAIN).pdf
+all: $(REPORT_DIR)/$(MAIN).pdf
 
 # Two pdflatex passes are needed to resolve \ref / \cite / \label references.
-$(MAIN).pdf: $(SRC)
-	$(LATEX) $(LATEXFLAGS) $(MAIN).tex
-	$(LATEX) $(LATEXFLAGS) $(MAIN).tex
+$(REPORT_DIR)/$(MAIN).pdf: $(SRC)
+	cd $(REPORT_DIR) && $(LATEX) $(LATEXFLAGS) $(MAIN).tex
+	cd $(REPORT_DIR) && $(LATEX) $(LATEXFLAGS) $(MAIN).tex
 	@echo ""
-	@echo "--> Built $(MAIN).pdf ($$(pdfinfo $(MAIN).pdf 2>/dev/null | awk '/^Pages:/ {print $$2" pages"}'))"
+	@echo "--> Built $(REPORT_DIR)/$(MAIN).pdf ($$(pdfinfo $(REPORT_DIR)/$(MAIN).pdf 2>/dev/null | awk '/^Pages:/ {print $$2" pages"}'))"
 
 # --- Fast single-pass build (cross-references may be stale) ---------------
 .PHONY: quick
 quick:
-	$(LATEX) $(LATEXFLAGS) $(MAIN).tex
+	cd $(REPORT_DIR) && $(LATEX) $(LATEXFLAGS) $(MAIN).tex
 
 # --- View the compiled PDF ------------------------------------------------
 .PHONY: view
-view: $(MAIN).pdf
+view: $(REPORT_DIR)/$(MAIN).pdf
 	@if command -v open >/dev/null 2>&1; then \
-	    open $(MAIN).pdf; \
+	    open $(REPORT_DIR)/$(MAIN).pdf; \
 	elif command -v xdg-open >/dev/null 2>&1; then \
-	    xdg-open $(MAIN).pdf; \
+	    xdg-open $(REPORT_DIR)/$(MAIN).pdf; \
 	else \
-	    echo "No PDF viewer found. Open $(MAIN).pdf manually."; \
+	    echo "No PDF viewer found. Open $(REPORT_DIR)/$(MAIN).pdf manually."; \
 	fi
 
 # --- Clean targets --------------------------------------------------------
@@ -60,14 +61,14 @@ AUX_EXT = aux log out toc lof lot bbl blg nav snm vrb fls fdb_latexmk synctex.gz
 .PHONY: clean
 clean:
 	@for ext in $(AUX_EXT); do \
-	    find . -type f -name "*.$$ext" -delete; \
+	    find $(REPORT_DIR) -type f -name "*.$$ext" -delete; \
 	done
-	@echo "--> Cleaned LaTeX auxiliary files."
+	@echo "--> Cleaned LaTeX auxiliary files in $(REPORT_DIR)."
 
 .PHONY: distclean
 distclean: clean
-	@rm -f $(MAIN).pdf
-	@echo "--> Removed $(MAIN).pdf."
+	@rm -f $(REPORT_DIR)/$(MAIN).pdf
+	@echo "--> Removed $(REPORT_DIR)/$(MAIN).pdf."
 
 # --- Help -----------------------------------------------------------------
 .PHONY: help

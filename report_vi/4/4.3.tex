@@ -1,0 +1,44 @@
+\subsection{Hiệu suất Phát hiện Tổng thể}
+\label{sec:exp-overall}
+
+Bảng~\ref{tab:results-no-smote} và~\ref{tab:results-smote} so sánh bốn mô hình ứng viên tương ứng khi không có và có lấy mẫu tăng cường Proportional SMOTE.
+
+\begin{table}[h]
+\centering
+\caption{Hiệu suất trên tập kiểm tra \emph{không có} SMOTE (class\_weight=`balanced').}
+\label{tab:results-no-smote}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Mô hình} & \textbf{Macro-$F_1$} & \textbf{Weighted-$F_1$} & \textbf{ROC-AUC} & \textbf{Huấn luyện~(s)}  \\
+\midrule
+XGBoost       & \textbf{0.9214} & \textbf{0.9959} & \textbf{0.9997} & 112  \\
+LightGBM      & 0.9206          & 0.9954          & \textbf{0.9997} & 149  \\
+Random Forest & 0.9202          & 0.9948          & 0.9969          &  62  \\
+Decision Tree & 0.9092          & 0.9908          & 0.9869          &   7  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h]
+\centering
+\caption{Hiệu suất trên tập kiểm tra \emph{với} Proportional SMOTE.}
+\label{tab:results-smote}
+\begin{tabular}{lcccccr}
+\toprule
+\textbf{Mô hình} & \textbf{Macro-$F_1$} & \textbf{Weighted-$F_1$} & \textbf{ROC-AUC} & \textbf{Bal.\ Acc} & \textbf{MCC} & \textbf{Huấn luyện~(s)}  \\
+\midrule
+\textbf{LightGBM} & \textbf{0.9241} & 0.9955 & \textbf{0.9997} & \textbf{0.9253} & 0.9945 & 212  \\
+XGBoost           & 0.9209          & \textbf{0.9956} & \textbf{0.9997} & 0.9163 & \textbf{0.9947} & 157  \\
+Random Forest     & 0.9149          & 0.9943          & 0.9996          & ---    & ---    & 125  \\
+Decision Tree     & 0.9068          & 0.9883          & 0.9869          & ---    & ---    &  12  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection*{Những Quan sát Chính.}
+\textbf{LightGBM với SMOTE} đạt Macro-$F_1$ cao nhất (0.9241) và Độ chính xác Cân bằng (Balanced Accuracy) cao nhất (0.9253), khiến nó trở thành mô hình tổng thể tốt nhất để phát hiện các lớp tấn công thiểu số một cách công bằng.
+\textbf{XGBoost} bám sát ngay sau đó và có MCC cao nhất (0.9947), cho thấy thứ hạng gần như hoàn hảo trên tất cả các ô của ma trận nhầm lẫn.
+\textbf{Random Forest} cung cấp một đường cơ sở vững chắc (Macro-$F_1$ = 0.9202 trước SMOTE) với thời gian huấn luyện ngắn nhất trong số các phương pháp tập hợp (62 s), làm cho nó trở thành lựa chọn thiết thực nhất khi khả năng tính toán bị hạn chế.
+\textbf{Cây Quyết định (Decision Tree)}, mặc dù đạt Macro-$F_1$ 90,7\%, cho thấy rằng ngay cả một bộ học phi tập hợp đơn giản cũng nắm bắt được phần lớn các tín hiệu phân biệt trong các đặc trưng Flow của CIC-IDS2017.
+
+Tất cả bốn mô hình đều dễ dàng vượt qua mục tiêu Macro-$F_1$ 0,95 đối với các lớp tấn công chủ đạo, được đại diện tốt; Macro-$F_1$ tổng thể giảm xuống dưới 0,95 do ba lớp thực sự khó (\texttt{Web Attack -- XSS}, \texttt{Web Attack -- Brute Force}, và \texttt{Rare\_Attack}), sẽ được thảo luận chi tiết trong Phần~\ref{sec:exp-per-class}.

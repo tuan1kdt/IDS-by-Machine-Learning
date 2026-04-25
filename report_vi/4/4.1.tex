@@ -1,0 +1,62 @@
+\subsection{Thiết lập Thực nghiệm}
+\label{sec:exp-setup}
+
+\subsubsection*{Môi trường Tính toán.}
+Tất cả các thử nghiệm được thực hiện trên Google Colab sử dụng runtime chỉ có CPU (Intel Xeon, 2 lõi, $\approx$12 GB RAM). Không có bộ tăng tốc GPU nào được sử dụng để huấn luyện hoặc suy luận; điều này phản ánh một kịch bản triển khai thực tế trên một gateway biên thông thường. Ngăn xếp phần mềm như sau:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Thành phần} & \textbf{Phiên bản}  \\
+\midrule
+Python             & 3.10  \\
+scikit-learn       & 1.4  \\
+XGBoost            & 2.0  \\
+LightGBM           & 4.3  \\
+imbalanced-learn   & 0.12  \\
+pandas / NumPy     & 2.0 / 1.26  \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection*{Dataset và Tiền xử lý.}
+Kho ngữ liệu CIC-IDS2017 thô được lấy từ Kaggle
+(\texttt{chethuhn/network-intrusion-dataset}), sao chép lại tám tệp CSV có nguồn gốc từ PCAP ban đầu của Viện An ninh Mạng Canada.
+Bảng~\ref{tab:data-pipeline} tóm tắt tiến trình của Dataset qua từng giai đoạn tiền xử lý.
+
+\begin{table}[h]
+\centering
+\caption{Kích thước Dataset ở mỗi giai đoạn của quy trình tiền xử lý.}
+\label{tab:data-pipeline}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Giai đoạn} & \textbf{Số hàng} & \textbf{Ghi chú}  \\
+\midrule
+Thô (8 tệp CSV)                & 2.830.743 & 79 cột bao gồm cả nhãn  \\
+Sau khi xóa Inf/NaN            & 2.827.876 & $-5{.}734$ hàng  \\
+Sau khi xóa trùng lặp          & 2.520.798 & $-307{.}078$ hàng  \\
+Sau khi giới hạn phân tầng (50k/lớp) & 234.187 & 13 lớp, 78 đặc trưng  \\
+\midrule
+Tập huấn luyện (80\%)          & 187.349   & phân tách phân tầng  \\
+Tập kiểm tra (20\%)            & 46.838    & độc lập, không được nhìn thấy khi huấn luyện  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection*{Hợp nhất Nhãn.}
+Ba lớp có ít hơn 500 mẫu được hợp nhất thành một lớp giả (pseudo-class) duy nhất là \texttt{Rare\_Attack}: \texttt{Infiltration} (36 Flow), \texttt{Web Attack -- SQL Injection} (21 Flow), và \texttt{Heartbleed} (11 Flow). Tập hợp nhãn kết quả do đó bao gồm 13 lớp: \texttt{BENIGN}, \texttt{Bot}, \texttt{DDoS}, \texttt{DoS GoldenEye}, \texttt{DoS Hulk}, \texttt{DoS Slowhttptest}, \texttt{DoS slowloris}, \texttt{FTP-Patator}, \texttt{PortScan}, \texttt{Rare\_Attack}, \texttt{SSH-Patator}, \texttt{Web Attack -- Brute Force}, và \texttt{Web Attack -- XSS}.
+
+\subsubsection*{Xử lý Mất cân bằng Lớp.}
+Chúng tôi áp dụng chiến lược lấy mẫu kết hợp hai giai đoạn chỉ cho tập huấn luyện:
+
+\begin{enumerate}
+    \item \textbf{Giới hạn phân tầng (Stratified cap)}: mỗi lớp được lấy mẫu con tối đa 50.000 mẫu để tránh tình trạng hết bộ nhớ trên runtime Colab.
+    \item \textbf{Proportional SMOTE}: các lớp thiểu số được lấy mẫu tăng cường sử dụng công thức \emph{mục tiêu căn bậc hai} được thiết kế để tránh tạo ra một tỷ lệ mẫu tổng hợp lớn phi thực tế:
+    \begin{equation}
+        N_{\text{target}} = \min\!\left(\sqrt{N_{\text{maj}} \cdot N_{\text{min}}},\; 10 \times N_{\text{min}},\; N_{\text{maj}}
+\right),
+    \end{equation}
+    trong đó $N_{\text{maj}}$ và $N_{\text{min}}$ lần lượt là số lượng sau giới hạn của lớp đa số và lớp thiểu số. SMOTE sử dụng $k=5$ láng giềng gần nhất trong Feature Space huấn luyện. Công thức mục tiêu đảm bảo rằng tỷ lệ tổng hợp không bao giờ vượt quá $90\%$ đối với bất kỳ lớp nào, giữ cho tín hiệu huấn luyện dựa trên các quan sát thực tế.
+\end{enumerate}
+
+\noindent Cả bốn mô hình đều được huấn luyện với \texttt{class\_weight=\text{`balanced'}} bên cạnh SMOTE, ngoại trừ LightGBM xử lý trọng số lớp nội bộ thông qua \texttt{is\_unbalance=True}. Một seed ngẫu nhiên toàn cục là $42$ được sử dụng để phân tách train/test, SMOTE và tất cả các thành phần mô hình ngẫu nhiên.

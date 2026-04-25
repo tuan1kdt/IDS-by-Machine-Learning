@@ -1,0 +1,20 @@
+%=======================================================================
+\section{Giới thiệu}
+\label{sec:intro}
+%=======================================================================
+
+Cảnh quan mối đe dọa mạng toàn cầu đã phát triển mạnh mẽ cả về khối lượng và mức độ tinh vi trong thập kỷ qua. Các doanh nghiệp thường xuyên phải đối mặt với các cuộc tấn công DDoS (DDoS) khối lượng lớn, nhồi nhét thông tin xác thực SSH và FTP bằng brute-force, tiêm nhiễm ứng dụng web, Reconnaissance nội bộ và Beacon ra lệnh và điều khiển (C2) của phần mềm độc hại---thường diễn ra đồng thời và trên các phân đoạn mạng không đồng nhất. Do đó, \textbf{Hệ thống phát hiện xâm nhập (IDS)} là lớp nền tảng của phòng thủ chiều sâu (defense-in-depth), liên tục giám sát lưu lượng và đưa ra cảnh báo khi quan sát thấy hoạt động sai lệch so với các mẫu dự kiến~\cite{ref_anomaly_survey}.
+
+Các IDS truyền thống được chia thành hai họ lớn: các bộ phát hiện \emph{dựa trên chữ ký (signature-based)} khớp lưu lượng với cơ sở dữ liệu quy tắc được tuyển chọn (ví dụ: Snort, Suricata) và các bộ phát hiện \emph{dựa trên sự bất thường (anomaly-based)} lập mô hình hành vi bình thường và gắn cờ các sai lệch thống kê. Các phương pháp tiếp cận chữ ký rất chính xác nhưng dễ bị phá vỡ---chúng yêu cầu các quy tắc do con người tạo ra và không thể phát hiện các cuộc tấn công zero-day hoặc phần mềm độc hại đa hình có chữ ký bị thay đổi. Các phương pháp tiếp cận dị thường tổng quát hóa tốt hơn nhưng trong lịch sử đã phải chịu tỷ lệ False Positive cao làm quá tải các nhà phân tích~\cite{ref_dl_ids}. Những hạn chế này thúc đẩy \textbf{các IDS dựa trên Machine Learning} học các biểu diễn phân biệt lưu lượng trực tiếp từ dữ liệu được dán nhãn.
+
+Trong dự án này, chúng tôi thiết kế, triển khai và đánh giá một IDS ứng dụng AI để phân loại các Flow mạng trên 13 lớp lưu lượng. Cụ thể, chúng tôi có những đóng góp sau:
+\begin{enumerate}
+    \item \textbf{Một quy trình ML đầu cuối (end-to-end)} từ các đặc trưng CICFlowMeter thô đến phân loại trên từng Flow, bao gồm lấy mẫu phân tầng, Lấy mẫu tăng cường SMOTE theo tỷ lệ và huấn luyện so sánh bốn bộ phân loại trên Dataset chuẩn \textbf{CIC-IDS2017}~\cite{ref_cicids2017}.
+    \item \textbf{Một nghiên cứu so sánh} bốn mô hình học---LightGBM~\cite{ref_lightgbm}, XGBoost~\cite{ref_xgboost}, Random Forest~\cite{ref_rf} và Decision Tree---bao gồm các lớp lưu lượng DDoS, PortScan, Brute-Force, DoS, Web Attacks, Bot và bình thường (benign).
+    \item \textbf{Một nghiên cứu cắt bỏ (ablation study)} phân lập sự đóng góp của Proportional SMOTE và xác định các chế độ lỗi hệ thống (nhầm lẫn Web Attacks, độ tin cậy của Rare\_Attack) vốn có trong phân loại mức độ Flow (flow-level).
+    \item \textbf{Thảo luận về việc triển khai} bao gồm trôi dạt khái niệm (concept drift), độ mạnh mẽ đối kháng (adversarial robustness) và các lộ trình Online/Continuous Learning.
+\end{enumerate}
+
+Kết quả nổi bật của chúng tôi là \textbf{LightGBM với Proportional SMOTE} đạt được Macro-$F_1$ là $0.9241$ trên tập kiểm tra độc lập với sáu trong mười ba lớp đạt $F_1 = 1.00$ hoàn hảo, trong khi duy trì thông lượng $> 30{.}000$ Flow mỗi giây trên phần cứng CPU thông thường.
+
+Phần còn lại của báo cáo này được tổ chức như sau. Phần~\ref{sec:background} xem xét công thức bài toán IDS, Dataset CIC-IDS2017 và nền tảng Machine Learning. Phần~\ref{sec:models} mô tả quy trình ML đầu cuối và bốn mô hình ứng viên. Phần~\ref{sec:experiments} trình bày các kết quả định lượng. Phần~\ref{sec:discussion} thảo luận về các hạn chế và hướng phát triển trong tương lai. Phần~\ref{sec:conclusion} là kết luận.

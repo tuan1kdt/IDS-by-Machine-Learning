@@ -1,0 +1,24 @@
+\subsection{Lưu lượng mạng và Phân loại tấn công}
+\label{sec:bg-network}
+
+\subsubsection*{Lưu lượng mạng: Các Packet và Flow.}
+Ở cấp độ thấp nhất, các mạng máy tính trao đổi thông tin dưới dạng các \emph{Packet}---các đơn vị dữ liệu rời rạc được trang bị các tiêu đề giao thức (Ethernet, IP, TCP/UDP) và Payload. Việc chụp các Packet thô thường được lưu trữ ở định dạng \textbf{PCAP} (Packet CAPture) được sử dụng rộng rãi, giúp bảo toàn độ trung thực từng byte của lưu lượng được quan sát. Mặc dù phân tích cấp độ Packet rất hữu ích để kiểm tra sâu, nhưng nó không thực tế đối với mô hình hóa thống kê vì các Packet riêng lẻ nhiễu và có kích thước thay đổi.
+
+Đối với phát hiện xâm nhập, đơn vị phân tích tự nhiên là \emph{Flow}. Một Flow là sự trao đổi hai chiều của các Packet chia sẻ cùng một \textbf{bộ 5 (5-tuple)}---IP nguồn, IP đích, cổng nguồn, cổng đích và giao thức truyền tải---trong một khoảng thời gian giới hạn. Một công cụ như \textsc{CICFlowMeter}~\cite{ref_cicflowmeter} đưa vào các tệp PCAP và xuất ra một hàng cho mỗi Flow, tóm tắt nó bằng các số liệu thống kê như thời lượng, số lượng Packet, thời gian xuất hiện (inter-arrival times) và phân phối cờ TCP. Biểu diễn cấp độ Flow là phương thức đầu vào được sử dụng xuyên suốt bài báo này.
+
+\subsubsection*{Phân loại các cuộc tấn công mạng.}
+Chúng tôi tập trung vào các danh mục tấn công có trong CIC-IDS2017, được nhóm theo hành vi có thể quan sát được của chúng trong thống kê Flow:
+
+\begin{description}[leftmargin=1.2em,itemsep=2pt,topsep=2pt]
+    \item[Port Scan / Network Scan.] Kẻ tấn công thăm dò các máy chủ hoặc cổng để lập bản đồ các dịch vụ bị lộ. Các công cụ như \textsf{nmap} và \textsf{masscan} phát ra nhiều nỗ lực kết nối ngắn hạn đến một tập hợp lớn các đích, tạo ra các Flow có số lượng Packet rất nhỏ nhưng tốc độ xuất hiện cao bất thường.
+    \item[DoS/DDoS.] Các cuộc tấn công khối lượng lớn cố gắng làm cạn kiệt tài nguyên mạng, truyền tải hoặc ứng dụng. Chúng biểu hiện dưới dạng các đợt Flow (bursts of flows) hướng tới một đích duy nhất, với phân phối kích thước Packet bị lệch và các mẫu cờ TCP bất thường (ví dụ: SYN flood, ACK flood, HTTP flood thông qua các công cụ như \textsf{hping3} hoặc \textsf{GoldenEye}).
+    \item[Brute-Force.] Các cuộc tấn công đoán thông tin xác thực nhắm vào các điểm cuối đăng nhập SSH, FTP và web (ví dụ: \textsf{Patator}, \textsf{Hydra}). Chúng xuất hiện dưới dạng nhiều Flow ngắn, lặp đi lặp lại đến cùng một cổng đích, thường không xác thực được và tạo ra các phiên TCP có thời lượng ngắn đặc trưng.
+    \item[Web Attacks.] SQL injection, cross-site scripting (XSS) và command injection nhắm mục tiêu vào lớp HTTP. Ở cấp độ Flow, chúng khó phát hiện hơn: chỉ một phần nhỏ byte khác với duyệt web bình thường, do đó, kỹ thuật Feature Extraction trên thống kê dẫn xuất từ Payload hoặc entropy URI sẽ hữu ích.
+    \item[Xâm nhập và Beacon ra lệnh và điều khiển của Malware (C2).] Sau khi một máy chủ bị xâm phạm, nó thường \emph{Beacon} trở lại một máy chủ do kẻ tấn công kiểm soát theo các khoảng thời gian đều đặn. Dấu hiệu ở cấp độ Flow là lưu lượng có khối lượng thấp nhưng mang tính chu kỳ cao, thường qua các kênh được mã hóa.
+    \item[Lưu lượng Botnet.] Các máy chủ bị nhiễm phối hợp với một bộ điều khiển thông qua IRC, HTTP(S) hoặc các mạng lưới ngang hàng (peer-to-peer). Các Flow botnet thường chia sẻ các dấu vân tay thống kê tương tự trên nhiều nguồn bị xâm phạm.
+\end{description}
+
+Mỗi lớp tấn công này định hình phân phối kết hợp (joint distribution) của các đặc trưng Flow theo cách khác nhau, và đây chính xác là những gì một bộ phân loại được học khai thác.
+
+\subsubsection*{IDS dựa trên chữ ký vs. Dựa trên bất thường vs. Dựa trên ML.}
+Các Hệ thống Phát hiện Xâm nhập cổ điển được phân loại rộng rãi thành \emph{dựa trên chữ ký}---khớp lưu lượng với các quy tắc thủ công (ví dụ: Snort, Suricata)~\cite{ref_snort}---hoặc \emph{dựa trên bất thường}---mô hình hóa hành vi bình thường và gắn cờ các sai lệch. Các phương pháp chữ ký chính xác với các mối đe dọa đã biết nhưng mù quáng trước các biến thể mới; các phương pháp bất thường tổng quát hóa tốt hơn nhưng trong lịch sử phải chịu tỷ lệ False Positive cao. Các IDS dựa trên Machine Learning chiếm một vị trí trung gian bằng cách \emph{học} các biểu diễn Flow có tính phân biệt trực tiếp từ lưu lượng được gắn nhãn, cung cấp khả năng tổng quát hóa tốt hơn so với chữ ký đồng thời mang lại tỷ lệ False Positive thấp hơn so với phát hiện bất thường thuần túy~\cite{ref_anomaly_survey}.

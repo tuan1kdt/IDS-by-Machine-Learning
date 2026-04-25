@@ -1,0 +1,8 @@
+\subsection{Kỹ thuật Feature Extraction}
+\label{sec:feat-eng}
+
+78 đặc trưng số do \textsc{CICFlowMeter} tạo ra được sử dụng nguyên trạng trong các thử nghiệm của chúng tôi. Việc loại bỏ các cột siêu dữ liệu định danh Flow (\texttt{Flow ID}, IP nguồn/đích, \texttt{Timestamp}) để lại một Feature Matrix $\mathbf{X} \in \mathbb{R}^{N \times 78}$ mà các cột của nó bao gồm bốn nhóm có ý nghĩa về mặt ngữ nghĩa: mô tả cấp độ Flow (thời lượng, số byte/số Packet), thống kê kích thước Packet (min/max/mean/std), thời gian xuất hiện (IAT mean/std ở cả hai hướng) và số lượng cờ TCP (SYN, ACK, FIN, RST, PSH, URG).
+
+Cách tiếp cận ``chỉ các đặc trưng thô'' này là có chủ đích. Như đã lưu ý trong Phần~\ref{sec:bg-ml}, các bộ học dựa trên cây bất biến với việc đổi tỷ lệ cột đơn điệu và không yêu cầu các đặc trưng tương tác do con người thiết kế để đạt được hiệu suất mạnh mẽ trên dữ liệu dạng bảng. Quá trình tiền xử lý duy nhất được áp dụng trước bộ học là \texttt{StandardScaler} được khớp trên tập huấn luyện, giúp căn giữa và chuẩn hóa mỗi cột thành phương sai đơn vị. Cả bốn mô hình ứng viên đều tiêu thụ cùng một biểu diễn $\mathbb{R}^{78}$ này.
+
+Nghiên cứu trong tương lai có thể khám phá các đặc trưng phái sinh như tỷ lệ số lượng Packet chuyển tiếp/ngược lại (forward/backward packet-count ratios) hoặc entropy Shannon của phân phối độ dài Packet, cả hai đều cho thấy mức tăng khiêm tốn trên mỗi lớp đối với các lớp thiểu số (\texttt{Bot}, \texttt{Beacon C2}) trong các tài liệu liên quan. Chúng tôi để điều này cho các nghiên cứu trong tương lai nhằm giữ cho quy trình hiện tại đơn giản và có thể tái tạo.

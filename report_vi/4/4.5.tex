@@ -1,0 +1,43 @@
+\subsection{Nghiên cứu Cắt bỏ (Ablation Studies)}
+\label{sec:exp-ablation}
+
+Để cô lập sự đóng góp của từng lựa chọn thiết kế, chúng tôi thực hiện một loạt các nghiên cứu cắt bỏ, mỗi nghiên cứu sửa đổi một thành phần của quy trình trong khi giữ nguyên các thành phần khác.
+
+\subsubsection*{(a) Tác động của SMOTE lên Macro-$F_1$.}
+Bảng~\ref{tab:ablation-smote} báo cáo sự thay đổi trong Macro-$F_1$ khi Proportional SMOTE được thêm vào dựa trên cơ sở \texttt{class\_weight=balanced}.
+
+\begin{table}[h]
+\centering
+\caption{$\Delta$Macro-$F_1$ do Proportional SMOTE đóng góp.}
+\label{tab:ablation-smote}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Mô hình} & \textbf{Không SMOTE} & \textbf{Có SMOTE} & \textbf{$\Delta$} & \textbf{Nhận định}  \\
+\midrule
+LightGBM      & 0.9206 & 0.9241 & $+0.0035$ & \checkmark\ Cải thiện  \\
+XGBoost       & 0.9214 & 0.9209 & $-0.0005$ & $\approx$ Trung lập  \\
+Random Forest & 0.9202 & 0.9149 & $-0.0053$ & $\times$\ Hơi suy giảm  \\
+Decision Tree & 0.9092 & 0.9068 & $-0.0024$ & $\times$\ Hơi suy giảm  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent LightGBM là mô hình duy nhất được hưởng lợi nghiêm ngặt từ SMOTE. Chiến lược phân tách dựa trên biểu đồ của nó sử dụng các điểm tổng hợp mới để tinh chỉnh ranh giới các thùng (bin) ở các vùng của lớp thiểu số, mang lại các bề mặt quyết định tốt hơn một cách thực sự. Ngược lại, Random Forest vốn đã áp dụng trọng số \texttt{balanced\_subsample} tại mọi lần rút mẫu bootstrap; việc thêm các láng giềng tổng hợp gần với bản gốc sẽ tạo ra nhiễu nhãn nhẹ mà không đóng góp thông tin mới, làm giảm nhẹ Macro-$F_1$. XGBoost gần như không thay đổi ($|\Delta| < 0.001$), chứng tỏ sự mạnh mẽ đối với bước lấy mẫu tăng cường bất kể nó có giúp ích hay không.
+
+\subsubsection*{(b) Tỷ lệ Tổng hợp vs.\ Độ tin cậy.}
+Các lớp có tỷ lệ tổng hợp trên 80\% cho thấy độ tin cậy bị suy giảm ở $F_1$ theo lớp. Cụ thể:
+\begin{itemize}
+    \item \texttt{Bot} ($\approx 80\%$ tổng hợp): $F_1 = 0.86$ --- chấp nhận được nhưng không hoàn hảo.
+    \item \texttt{Web Attack -- XSS} ($\approx 89\%$ tổng hợp): $F_1 = 0.72$ --- suy giảm rõ rệt.
+    \item \texttt{Rare\_Attack} ($\approx 90\%$ tổng hợp): $F_1 = 0.43$ --- không đáng tin cậy.
+\end{itemize}
+Điều này xác nhận ngưỡng theo nguyên tắc ngón tay cái: các lớp có các mẫu tổng hợp vượt quá 80\% trong tổng số mẫu sau SMOTE nên được xử lý một cách thận trọng và các số liệu được báo cáo của chúng nên được chú thích tương ứng.
+
+\subsubsection*{(c) Sự đồng thuận của cả Bốn Mô hình (Kiểm tra Định tính 30 mẫu).}
+Như một kiểm tra định tính cuối cùng, chúng tôi đã rút ngẫu nhiên 30 Flow thử nghiệm trải rộng trên tất cả 13 lớp và thu được các dự đoán độc lập từ cả bốn mô hình. Kết quả:
+\begin{itemize}
+    \item Cả bốn mô hình đều đúng: \textbf{25/30} (83\%)
+    \item Đa số (3/4) đúng: \textbf{0/30} (0\%)
+    \item Đa số sai ($\leq$1/4 đúng): \textbf{5/30} (17\%)
+\end{itemize}
+Năm thất bại này đều thuộc về cùng hai lớp khó: \texttt{Web Attack -- XSS} (bị nhầm lẫn nhất trí với \texttt{Web Attack -- Brute Force}) và \texttt{Rare\_Attack} (bị phân tách giữa \texttt{XSS}, \texttt{BENIGN}, và \texttt{Rare\_Attack}). Sự đồng thuận giữa các mô hình này xác nhận rằng sự nhầm lẫn không phải là một tạo tác của bất kỳ bộ học đơn lẻ nào mà vốn có trong Feature Space cấp độ Flow đối với các loại tấn công này.

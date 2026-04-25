@@ -1,0 +1,107 @@
+% Báo cáo cuối kỳ: Hệ thống phát hiện xâm nhập (IDS) sử dụng Trí tuệ nhân tạo (AI) và Machine Learning (Machine Learning)
+% Định dạng LLNCS - Springer
+\documentclass[runningheads]{llncs}
+
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+\algnewcommand\algorithmicinput{\textbf{Đầu vào:}}
+\algnewcommand\Input{\item[\algorithmicinput]}
+\algnewcommand\algorithmicoutput{\textbf{Đầu ra:}}
+\algnewcommand\Output{\item[\algorithmicoutput]}
+
+\begin{document}
+
+	itle{Hệ thống Phát hiện Xâm nhập (IDS) ứng dụng Trí tuệ Nhân tạo: Phát hiện Tấn công Mạng theo Thời gian Thực bằng Machine Learning trên Dataset CIC-IDS2017}
+
+\titlerunning{IDS dựa trên ML: Phát hiện Tấn công Mạng theo Thời gian Thực}
+
+\author{Lê Anh Tuấn\inst{1}\thanks{MSSV: 252805005} \and
+        Tô Hoàng Đạo\inst{1}\thanks{MSSV: 252805401} \and
+        Nguyễn Từ Thanh Duy\inst{1}\thanks{MSSV: 252805701}}
+
+\institute{Trường Đại học Tôn Đức Thắng (TDTU), TP. Hồ Chí Minh, Việt Nam}
+
+\maketitle
+
+\begin{abstract}
+Mạng lưới doanh nghiệp hiện đại phải đối mặt với bề mặt tấn công ngày càng mở rộng, với các đối thủ sử dụng các kỹ thuật từ các cuộc tấn công DDoS (DDoS) khối lượng lớn đến các cuộc tấn công dò mật khẩu lén lút và các cuộc tấn công tiêm nhiễm lớp web. Các Hệ thống Phát hiện Xâm nhập (IDS) dựa trên chữ ký vẫn hiệu quả với các mối đe dọa đã biết nhưng không thể khái quát hóa đối với các cuộc tấn công mới và đa hình. Bài báo này trình bày một IDS ứng dụng AI áp dụng Machine Learning có giám sát để phân loại Flow mạng trên 13 lớp lưu lượng sử dụng Dataset chuẩn CIC-IDS2017. Chúng tôi thiết kế một quy trình đầu cuối bao gồm lấy mẫu phân tầng, chiến lược lấy mẫu tăng cường SMOTE theo tỷ lệ dựa trên công thức mục tiêu căn bậc hai và huấn luyện so sánh bốn bộ phân loại: LightGBM, XGBoost, Random Forest và Decision Tree. Kết quả thực nghiệm trên tập kiểm tra độc lập gồm 46.838 Flow cho thấy \textbf{LightGBM với Proportional SMOTE} đạt Macro-$F_1$ tốt nhất là \textbf{0.9241} và Độ chính xác cân bằng (Balanced Accuracy) là \textbf{0.9253}, với sáu trong mười ba lớp đạt mức tuyệt đối $F_1 = 1.00$. Tất cả các mô hình dựa trên cây đều duy trì tốc độ $> 30{.}000$ Flow mỗi giây trên phần cứng CPU thông thường, đáp ứng ngân sách độ trễ cho việc triển khai trực tiếp (inline deployment). Chúng tôi xác định các dạng lỗi còn lại---chủ yếu là sự nhầm lẫn giữa các loại Web Attacks phụ và độ tin cậy bị suy giảm của các lớp có hơn 80\% mẫu huấn luyện tổng hợp---và thảo luận về các biện pháp giảm thiểu mục tiêu bao gồm các tính năng ở cấp độ Payload và điều chỉnh ngưỡng.
+
+\keywords{Hệ thống Phát hiện Xâm nhập \and Machine Learning \and CIC-IDS2017 \and LightGBM \and XGBoost \and Random Forest \and SMOTE \and Mất cân bằng Lớp \and An ninh Mạng}
+\end{abstract}
+
+\input{1/1}
+
+\input{2/2}
+
+\input{3/3}
+
+\input{4/4}
+
+\input{5/5}
+\input{6/6}
+
+
+%=======================================================================
+\clearpage
+\begin{thebibliography}{8}
+
+\bibitem{ref_cicids2017}
+Sharafaldin, I., Habibi Lashkari, A., Ghorbani, A.A.: Toward Generating a New Intrusion Detection Dataset and Intrusion Traffic Characterization. In: Proc.\ 4th Int.\ Conf.\ on Information Systems Security and Privacy (ICISSP), pp.\ 108--116 (2018)
+
+\bibitem{ref_kdd99}
+Tavallaee, M., Bagheri, E., Lu, W., Ghorbani, A.A.: A Detailed Analysis of the KDD CUP 99 Data Set. In: Proc.\ IEEE Symp.\ on Computational Intelligence for Security and Defense Applications (CISDA), pp.\ 1--6 (2009)
+
+\bibitem{ref_rf}
+Breiman, L.: Random Forests. Machine Learning \textbf{45}(1), 5--32 (2001)
+
+\bibitem{ref_xgboost}
+Chen, T., Guestrin, C.: XGBoost: A Scalable Tree Boosting System. In: Proc.\ 22nd ACM SIGKDD, pp.\ 785--794 (2016)
+
+\bibitem{ref_smote}
+Chawla, N.V., Bowyer, K.W., Hall, L.O., Kegelmeyer, W.P.: SMOTE: Synthetic Minority Over-Sampling Technique. JAIR \textbf{16}, 321--357 (2002)
+
+\bibitem{ref_dl_ids}
+Vinayakumar, R., Alazab, M., Soman, K.P., Poornachandran, P., Al-Nemrat, A., Venkatraman, S.: Deep Learning Approach for Intelligent Intrusion Detection System. IEEE Access \textbf{7}, 41525--41550 (2019)
+
+\bibitem{ref_anomaly_survey}
+Buczak, A.L., Guven, E.: A Survey of Data Mining and Machine Learning Methods for Cyber Security Intrusion Detection. IEEE Commun.\ Surv.\ Tutor.\ \textbf{18}(2), 1153--1176 (2016)
+
+\bibitem{ref_tensorflow}
+Abadi, M., et al.: TensorFlow: A System for Large-Scale Machine Learning. In: Proc.\ 12th USENIX OSDI, pp.\ 265--283 (2016)
+
+\bibitem{ref_lightgbm}
+Ke, G., Meng, Q., Finley, T., Wang, T., Chen, W., Ma, W., Ye, Q., Liu, T.Y.: LightGBM: A Highly Efficient Gradient Boosting Decision Tree. In: Advances in Neural Information Processing Systems (NeurIPS), vol.\ 30, pp.\ 3146--3154 (2017)
+
+\bibitem{ref_cicflowmeter}
+Lashkari, A.H., Gil, G.D., Mamun, M.S.I., Ghorbani, A.A.: Characterization of Tor Traffic using Time based Features. In: Proc.\ 3rd Int.\ Conf.\ on Information Systems Security and Privacy (ICISSP), pp.\ 253--262 (2017). \url{https://www.unb.ca/cic/research/applications.html\#CICFlowMeter}
+
+\bibitem{ref_snort}
+Roesch, M.: Snort---Lightweight Intrusion Detection for Networks. In: Proc.\ 13th USENIX LISA Conference, pp.\ 229--238 (1999)
+
+\bibitem{ref_adasyn}
+He, H., Bai, Y., Garcia, E.A., Li, S.: ADASYN: Adaptive Synthetic Sampling Approach for Imbalanced Learning. In: Proc.\ IEEE Int.\ Joint Conf.\ Neural Networks, pp.\ 1322--1328 (2008)
+
+\bibitem{ref_focal}
+Lin, T.Y., Goyal, P., Girshick, R., He, K., Doll'{a}r, P.: Focal Loss for Dense Object Detection. In: Proc.\ IEEE ICCV, pp.\ 2980--2988 (2017)
+
+\bibitem{ref_prauc}
+Saito, T., Rehmsmeier, M.: The Precision--Recall Plot is More Informative than the ROC Plot when Evaluating Binary Classifiers on Imbalanced Datasets. PLoS ONE \textbf{10}(3), e0118432 (2015)
+
+\end{thebibliography}
+
+\end{document}

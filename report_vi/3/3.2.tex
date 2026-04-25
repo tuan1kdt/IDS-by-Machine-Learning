@@ -1,0 +1,33 @@
+\subsection{Tổng quan Kiến trúc Hệ thống}
+\label{sec:arch-overview}
+
+IDS được đề xuất được tổ chức thành một quy trình phân đoạn, trong đó mỗi thành phần đưa ra một hợp đồng dữ liệu hẹp cho thành phần tiếp theo, cho phép huấn luyện ngoại tuyến và suy luận trực tuyến chia sẻ logic tiền xử lý và kỹ thuật Feature Extraction giống hệt nhau:
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+    node distance=0.65cm and 0.85cm,
+    every node/.style={font=\footnotesize},
+    stage/.style={draw, rounded corners=2pt, minimum width=2.3cm, minimum height=0.9cm, align=center, thick},
+    arrow/.style={-Stealth, thick}
+]
+    \node[stage, fill=blue!8]   (capture)  {Bắt Packet\\(Traffic Capture)};
+    \node[stage, fill=blue!8,  right=of capture]  (extract)  {Trình trích xuất\\(Flow Extractor)};
+    \node[stage, fill=green!10, right=of extract]  (prep)     {Tiền xử lý\\\& Chuẩn hóa};
+    \node[stage, fill=orange!15, right=of prep]    (model)    {Bộ phân loại ML\\(4 mô hình)};
+    \node[stage, fill=red!10,  right=of model]    (alert)    {Cảnh báo /\\Ghi log};
+
+    \draw[arrow] (capture) -- node[above=-1pt,font=\scriptsize]{pcap} (extract);
+    \draw[arrow] (extract) -- node[above=-1pt,font=\scriptsize]{hàng Flow} (prep);
+    \draw[arrow] (prep)    -- node[above=-1pt,font=\scriptsize]{$\mathbf{x}\in\mathbb{R}^{78}$} (model);
+    \draw[arrow] (model)   -- node[above=-1pt,font=\scriptsize]{$\hat{y}, p$} (alert);
+\end{tikzpicture}
+\caption{Quy trình IDS đầu cuối. Các giai đoạn tiền xử lý (màu xanh lá cây) và mô hình (màu cam) được chia sẻ giữa đường dẫn huấn luyện ngoại tuyến và đường dẫn suy luận trực tuyến.}
+\label{fig:pipeline}
+\end{figure}
+
+\textbf{Bắt Packet (Traffic Capture)} phản chiếu các Packet thô từ cổng SPAN và ghi chúng vào bộ đệm PCAP cuốn chiếu (rolling PCAP buffer).
+\textbf{Trình trích xuất Flow (Flow Extractor)} (\textsc{CICFlowMeter}~\cite{ref_cicflowmeter}) nhóm các Packet thành các Flow hai chiều và xuất ra một hàng có 78 đặc trưng cho mỗi Flow.
+\textbf{Tiền xử lý \& Chuẩn hóa} loại bỏ các hàng có \texttt{NaN}/$\pm\infty$, áp dụng \texttt{StandardScaler} đã đóng băng và mã hóa các nhãn.
+\textbf{Bộ phân loại ML} tính điểm Feature Vector đã chuẩn hóa và đưa ra một lớp dự đoán cùng độ tin cậy tùy chọn.
+\textbf{Cảnh báo / Ghi log} chuyển tiếp các dự đoán không phải \texttt{BENIGN} tới SIEM và ghi lại tất cả các dự đoán để theo dõi trôi dạt ngoại tuyến.

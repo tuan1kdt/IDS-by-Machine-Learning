@@ -1,0 +1,6 @@
+\subsection{Suy luận và Các cân nhắc Triển khai}
+\label{sec:inference}
+
+Vào thời điểm triển khai, mô hình đã được huấn luyện, bộ chia tỷ lệ đã được khớp và bộ mã hóa nhãn được tuần tự hóa (serialised) vào đĩa và được worker suy luận tải lên. Mỗi bản ghi Flow đến được truyền qua cùng các bước \textsc{EngineerFeatures} và \textsc{Scale} đã được áp dụng trong thời gian huấn luyện, đảm bảo rằng không có độ lệch (skew) giữa huấn luyện/phục vụ. Bộ phân loại đã được huấn luyện sau đó sẽ xuất ra một vector xác suất lớp; nhãn dự đoán là lớp có xác suất cao nhất.
+
+Như được trình bày trong Phần~\ref{sec:exp-latency}, tất cả các mô hình dựa trên cây đều đạt được $> 30{.}000$ Flow mỗi giây trên một lõi CPU duy nhất, thỏa mãn một cách thoải mái mục tiêu thông lượng $10^4$ Flow/s. Việc xử lý theo lô siêu nhỏ (micro-batching - thu thập 128 Flow trước khi gọi \texttt{predict\_proba} một lần) làm tăng thông lượng lên gấp $6{-}9$ lần so với các cuộc gọi mẫu đơn lẻ với độ trễ bổ sung không đáng kể, làm cho suy luận hàng loạt (batch inference) trở thành mặc định được khuyến nghị cho các đợt triển khai sản xuất. Mô hình LightGBM được tuần tự hóa chỉ chiếm khoảng $5\,\text{MB}$, cho phép triển khai đồng thời với trình trích xuất Flow trên cùng một máy chủ gateway nằm gọn trong ngân sách tài nguyên 512 MB.

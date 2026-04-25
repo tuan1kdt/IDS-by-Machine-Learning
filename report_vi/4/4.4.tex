@@ -1,0 +1,44 @@
+\subsection{Phân tích chi tiết theo Lớp}
+\label{sec:exp-per-class}
+
+Bảng~\ref{tab:per-class} báo cáo Precision, Recall, và $F_1$ cho từng lớp đối với mô hình tốt nhất (LightGBM sau Proportional SMOTE) trên tập kiểm tra độc lập.
+
+\begin{table}[h]
+\centering
+\caption{Các số liệu theo lớp đối với LightGBM + Proportional SMOTE trên tập kiểm tra.}
+\label{tab:per-class}
+\begin{tabular}{lcccl}
+\toprule
+\textbf{Lớp} & \textbf{Precision} & \textbf{Recall} & \textbf{$F_1$} & \textbf{Thách thức chính}  \\
+\midrule
+BENIGN                   & 1.00 & 1.00 & 1.00 & Số lượng nhiều, mẫu đặc trưng  \\
+DDoS                     & 1.00 & 1.00 & 1.00 & Khối lượng lớn, cờ đặc trưng  \\
+DoS Hulk                 & 1.00 & 1.00 & 1.00 & Mẫu HTTP flood lặp đi lặp lại  \\
+PortScan                 & 1.00 & 1.00 & 1.00 & Mẫu truy cập cổng tuần tự  \\
+FTP-Patator              & 1.00 & 1.00 & 1.00 & Dấu hiệu xác thực lỗi lặp đi lặp lại  \\
+SSH-Patator              & 1.00 & 1.00 & 1.00 & Dấu hiệu xác thực lỗi lặp đi lặp lại  \\
+DoS GoldenEye            & 0.99 & 0.98 & 0.99 & Khối lượng trung bình, trộn lẫn với Hulk  \\
+DoS Slowhttptest         & 0.99 & 0.97 & 0.98 & Mẫu tốc độ chậm, trùng lặp IAT  \\
+DoS slowloris            & 0.98 & 0.96 & 0.97 & Hồ sơ IAT tương tự Slowhttptest  \\
+Bot                      & 0.93 & 0.80 & 0.86 & Khối lượng thấp ($\sim$1.9k), tổng hợp nhiều  \\
+Web Attack -- Brute Force & 0.87 & 0.79 & 0.83 & Tương đồng lớp HTTP với XSS  \\
+Web Attack -- XSS        & 0.62 & 0.86 & 0.72 & Dễ bị nhầm lẫn với Brute Force  \\
+Rare\_Attack             & 0.58 & 0.34 & 0.43 & Gộp các lớp không đồng nhất, $\sim$90\% tổng hợp  \\
+\midrule
+\textbf{Trung bình Macro} & \textbf{0.92} & \textbf{0.90} & \textbf{0.92} &  \\
+\textbf{Trung bình có trọng số} & \textbf{0.996} & \textbf{0.996} & \textbf{0.996} &  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection*{Các Lớp Mạnh.}
+Sáu lớp đạt được $F_1 = 1.00$ hoàn hảo: \texttt{BENIGN}, \texttt{DDoS}, \texttt{DoS Hulk}, \texttt{PortScan}, \texttt{FTP-Patator}, và \texttt{SSH-Patator}. Các lớp này có số lượng phong phú (BENIGN: giới hạn 50.000; DoS Hulk: giới hạn 50.000) hoặc thể hiện các dấu hiệu thống kê rất đặc trưng trong các đặc điểm cấp độ Flow---DDoS floods khối lượng lớn tạo ra các giá trị \texttt{Flow Packets/s} cực hạn, trong khi các cuộc tấn công SSH/FTP brute-force cho thấy một loạt các phiên TCP thời lượng ngắn với các cờ RST lặp lại.
+
+\subsubsection*{Các Lớp Web Attacks dễ nhầm lẫn.}
+\texttt{Web Attack -- XSS} và \texttt{Web Attack -- Brute Force} là cặp vấn đề nhất. Ở cấp độ Flow HTTP, phân phối đặc trưng của chúng chồng chéo lên nhau đáng kể: cả hai đều tạo ra các phiên TCP có độ dài vừa phải, số lượng Packet thấp đến cổng 80/443 và số liệu thống kê IAT của chúng gần như giống hệt nhau. Sự nhầm lẫn được phản ánh qua sự bất đối xứng giữa độ chính xác/thu hồi: XSS đạt được recall cao (0,86) nhưng precision thấp (0,62), nghĩa là hầu hết các Flow XSS đều được phát hiện nhưng gần một phần ba số cảnh báo XSS dự đoán thực chất là các Flow Brute Force. Việc kiểm tra cấp độ Payload (payload-level) hoặc đặc trưng entropy URI có khả năng giải quyết hầu hết sự nhầm lẫn này nhưng nằm ngoài phạm vi của phân loại chỉ dựa trên Flow.
+
+\subsubsection*{Rare\_Attack.}
+Lớp giả gộp này (\texttt{Infiltration} + \texttt{SQL Injection} + \texttt{Heartbleed}) đạt được $F_1 = 0.43$ thấp nhất. Nguyên nhân cơ bản có hai phần: (i) ba loại tấn công cấu thành có các dấu hiệu mạng khác nhau về chất, vì vậy nhãn được hợp nhất không mạch lạc về mặt ngữ nghĩa; (ii) khoảng 90\% mẫu huấn luyện do SMOTE tạo ra, khiến mô hình không có đủ bằng chứng thực tế. Phần~\ref{sec:exp-ablation} định lượng tác động của phần tổng hợp này.
+
+\subsubsection*{SMOTE vs.\ Không SMOTE trên Recall Lớp Thiểu số.}
+So sánh các lớp thiểu số trước và sau khi có SMOTE, recall của lớp \texttt{Bot} cải thiện từ 0,71 lên 0,80 ($+9$ pp) và recall của lớp \texttt{Rare\_Attack} cải thiện từ 0,18 lên 0,34 ($+16$ pp), xác nhận rằng việc lấy mẫu tăng cường cung cấp một sự gia tăng có ý nghĩa cho các lớp có tỷ lệ hiện diện thấp nhất bất chấp việc tỷ lệ tổng hợp tăng cao.

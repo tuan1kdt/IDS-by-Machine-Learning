@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.4.5)  25 APR 2026 08:47
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.4.5)  25 APR 2026 10:38
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -154,13 +154,183 @@ LaTeX Info: Redefining \vec on input line 394.
 )
 (/usr/local/texlive/2026/texmf-dist/tex/latex/base/fontenc.sty
 Package: fontenc 2025/07/18 v2.1d Standard LaTeX package
+
+(/usr/local/texlive/2026/texmf-dist/tex/latex/vntex/t5enc.def
+File: t5enc.def 2006/11/21 v1.4 Vietnamese T5 encoding
+Now handling font encoding T5 ...
+... processing UTF-8 mapping file for font encoding T5
+
+(/usr/local/texlive/2026/texmf-dist/tex/latex/vntex/t5enc.dfu
+File: t5enc.dfu 2006/08/19 v1.1 UTF8 support for Vietnamese
+   defining Unicode char U+00AB (decimal 171)
+   defining Unicode char U+00BB (decimal 187)
+   defining Unicode char U+00C0 (decimal 192)
+   defining Unicode char U+00C1 (decimal 193)
+   defining Unicode char U+00C2 (decimal 194)
+   defining Unicode char U+00C3 (decimal 195)
+   defining Unicode char U+00C8 (decimal 200)
+   defining Unicode char U+00C9 (decimal 201)
+   defining Unicode char U+00CA (decimal 202)
+   defining Unicode char U+00CC (decimal 204)
+   defining Unicode char U+00CD (decimal 205)
+   defining Unicode char U+00D2 (decimal 210)
+   defining Unicode char U+00D3 (decimal 211)
+   defining Unicode char U+00D4 (decimal 212)
+   defining Unicode char U+00D5 (decimal 213)
+   defining Unicode char U+00D9 (decimal 217)
+   defining Unicode char U+00DA (decimal 218)
+   defining Unicode char U+00DD (decimal 221)
+   defining Unicode char U+00E0 (decimal 224)
+   defining Unicode char U+00E1 (decimal 225)
+   defining Unicode char U+00E2 (decimal 226)
+   defining Unicode char U+00E3 (decimal 227)
+   defining Unicode char U+00E8 (decimal 232)
+   defining Unicode char U+00E9 (decimal 233)
+   defining Unicode char U+00EA (decimal 234)
+   defining Unicode char U+00EC (decimal 236)
+   defining Unicode char U+00ED (decimal 237)
+   defining Unicode char U+00F2 (decimal 242)
+   defining Unicode char U+00F3 (decimal 243)
+   defining Unicode char U+00F4 (decimal 244)
+   defining Unicode char U+00F5 (decimal 245)
+   defining Unicode char U+00F9 (decimal 249)
+   defining Unicode char U+00FA (decimal 250)
+   defining Unicode char U+00FD (decimal 253)
+   defining Unicode char U+0102 (decimal 258)
+   defining Unicode char U+0103 (decimal 259)
+   defining Unicode char U+0110 (decimal 272)
+   defining Unicode char U+0111 (decimal 273)
+   defining Unicode char U+0128 (decimal 296)
+   defining Unicode char U+0129 (decimal 297)
+   defining Unicode char U+0131 (decimal 305)
+   defining Unicode char U+0168 (decimal 360)
+   defining Unicode char U+0169 (decimal 361)
+   defining Unicode char U+01A0 (decimal 416)
+   defining Unicode char U+01A1 (decimal 417)
+   defining Unicode char U+01AF (decimal 431)
+   defining Unicode char U+01B0 (decimal 432)
+   defining Unicode char U+1EA0 (decimal 7840)
+   defining Unicode char U+1EA1 (decimal 7841)
+   defining Unicode char U+1EA2 (decimal 7842)
+   defining Unicode char U+1EA3 (decimal 7843)
+   defining Unicode char U+1EA4 (decimal 7844)
+   defining Unicode char U+1EA5 (decimal 7845)
+   defining Unicode char U+1EA6 (decimal 7846)
+   defining Unicode char U+1EA7 (decimal 7847)
+   defining Unicode char U+1EA8 (decimal 7848)
+   defining Unicode char U+1EA9 (decimal 7849)
+   defining Unicode char U+1EAA (decimal 7850)
+   defining Unicode char U+1EAB (decimal 7851)
+   defining Unicode char U+1EAC (decimal 7852)
+   defining Unicode char U+1EAD (decimal 7853)
+   defining Unicode char U+1EAE (decimal 7854)
+   defining Unicode char U+1EAF (decimal 7855)
+   defining Unicode char U+1EB0 (decimal 7856)
+   defining Unicode char U+1EB1 (decimal 7857)
+   defining Unicode char U+1EB2 (decimal 7858)
+   defining Unicode char U+1EB3 (decimal 7859)
+   defining Unicode char U+1EB4 (decimal 7860)
+   defining Unicode char U+1EB5 (decimal 7861)
+   defining Unicode char U+1EB6 (decimal 7862)
+   defining Unicode char U+1EB7 (decimal 7863)
+   defining Unicode char U+1EB8 (decimal 7864)
+   defining Unicode char U+1EB9 (decimal 7865)
+   defining Unicode char U+1EBA (decimal 7866)
+   defining Unicode char U+1EBB (decimal 7867)
+   defining Unicode char U+1EBC (decimal 7868)
+   defining Unicode char U+1EBD (decimal 7869)
+   defining Unicode char U+1EBE (decimal 7870)
+   defining Unicode char U+1EBF (decimal 7871)
+   defining Unicode char U+1EC0 (decimal 7872)
+   defining Unicode char U+1EC1 (decimal 7873)
+   defining Unicode char U+1EC2 (decimal 7874)
+   defining Unicode char U+1EC3 (decimal 7875)
+   defining Unicode char U+1EC4 (decimal 7876)
+   defining Unicode char U+1EC5 (decimal 7877)
+   defining Unicode char U+1EC6 (decimal 7878)
+   defining Unicode char U+1EC7 (decimal 7879)
+   defining Unicode char U+1EC8 (decimal 7880)
+   defining Unicode char U+1EC9 (decimal 7881)
+   defining Unicode char U+1ECA (decimal 7882)
+   defining Unicode char U+1ECB (decimal 7883)
+   defining Unicode char U+1ECC (decimal 7884)
+   defining Unicode char U+1ECD (decimal 7885)
+   defining Unicode char U+1ECE (decimal 7886)
+   defining Unicode char U+1ECF (decimal 7887)
+   defining Unicode char U+1ED0 (decimal 7888)
+   defining Unicode char U+1ED1 (decimal 7889)
+   defining Unicode char U+1ED2 (decimal 7890)
+   defining Unicode char U+1ED3 (decimal 7891)
+   defining Unicode char U+1ED4 (decimal 7892)
+   defining Unicode char U+1ED5 (decimal 7893)
+   defining Unicode char U+1ED6 (decimal 7894)
+   defining Unicode char U+1ED7 (decimal 7895)
+   defining Unicode char U+1ED8 (decimal 7896)
+   defining Unicode char U+1ED9 (decimal 7897)
+   defining Unicode char U+1EDA (decimal 7898)
+   defining Unicode char U+1EDB (decimal 7899)
+   defining Unicode char U+1EDC (decimal 7900)
+   defining Unicode char U+1EDD (decimal 7901)
+   defining Unicode char U+1EDE (decimal 7902)
+   defining Unicode char U+1EDF (decimal 7903)
+   defining Unicode char U+1EE0 (decimal 7904)
+   defining Unicode char U+1EE1 (decimal 7905)
+   defining Unicode char U+1EE2 (decimal 7906)
+   defining Unicode char U+1EE3 (decimal 7907)
+   defining Unicode char U+1EE4 (decimal 7908)
+   defining Unicode char U+1EE5 (decimal 7909)
+   defining Unicode char U+1EE6 (decimal 7910)
+   defining Unicode char U+1EE7 (decimal 7911)
+   defining Unicode char U+1EE8 (decimal 7912)
+   defining Unicode char U+1EE9 (decimal 7913)
+   defining Unicode char U+1EEA (decimal 7914)
+   defining Unicode char U+1EEB (decimal 7915)
+   defining Unicode char U+1EEC (decimal 7916)
+   defining Unicode char U+1EED (decimal 7917)
+   defining Unicode char U+1EEE (decimal 7918)
+   defining Unicode char U+1EEF (decimal 7919)
+   defining Unicode char U+1EF0 (decimal 7920)
+   defining Unicode char U+1EF1 (decimal 7921)
+   defining Unicode char U+1EF2 (decimal 7922)
+   defining Unicode char U+1EF3 (decimal 7923)
+   defining Unicode char U+1EF4 (decimal 7924)
+   defining Unicode char U+1EF5 (decimal 7925)
+   defining Unicode char U+1EF6 (decimal 7926)
+   defining Unicode char U+1EF7 (decimal 7927)
+   defining Unicode char U+1EF8 (decimal 7928)
+   defining Unicode char U+1EF9 (decimal 7929)
+   defining Unicode char U+200C (decimal 8204)
+   defining Unicode char U+2013 (decimal 8211)
+   defining Unicode char U+2014 (decimal 8212)
+   defining Unicode char U+2018 (decimal 8216)
+   defining Unicode char U+2019 (decimal 8217)
+   defining Unicode char U+201A (decimal 8218)
+   defining Unicode char U+201C (decimal 8220)
+   defining Unicode char U+201D (decimal 8221)
+   defining Unicode char U+201E (decimal 8222)
+   defining Unicode char U+2030 (decimal 8240)
+   defining Unicode char U+2031 (decimal 8241)
+   defining Unicode char U+2039 (decimal 8249)
+   defining Unicode char U+203A (decimal 8250)
+   defining Unicode char U+2423 (decimal 9251)
+))
+LaTeX Font Info:    Trying to load font information for T5+cmr on input line 11
+6.
+
+(/usr/local/texlive/2026/texmf-dist/tex/latex/vntex/t5cmr.fd
+File: t5cmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+))
+(/usr/local/texlive/2026/texmf-dist/tex/latex/base/inputenc.sty
+Package: inputenc 2024/02/08 v1.3d Input encoding file
+\inpenc@prehook=\toks21
+\inpenc@posthook=\toks22
 )
 (/usr/local/texlive/2026/texmf-dist/tex/latex/graphics/graphicx.sty
 Package: graphicx 2024/12/31 v1.2e Enhanced LaTeX Graphics (DPC,SPQR)
 
 (/usr/local/texlive/2026/texmf-dist/tex/latex/graphics/keyval.sty
 Package: keyval 2022/05/29 v1.15 key=value parser (DPC)
-\KV@toks@=\toks21
+\KV@toks@=\toks23
 )
 (/usr/local/texlive/2026/texmf-dist/tex/latex/graphics/graphics.sty
 Package: graphics 2024/08/06 v1.4g Standard LaTeX Graphics (DPC,SPQR)
@@ -189,7 +359,7 @@ Package: amstext 2024/11/17 v2.01 AMS text
 
 (/usr/local/texlive/2026/texmf-dist/tex/latex/amsmath/amsgen.sty
 File: amsgen.sty 1999/11/30 v2.0 generic functions
-\@emptytoks=\toks22
+\@emptytoks=\toks24
 \ex@=\dimen173
 ))
 (/usr/local/texlive/2026/texmf-dist/tex/latex/amsmath/amsbsy.sty
@@ -233,21 +403,21 @@ LaTeX Info: Redefining \Relbar on input line 970.
 \dotsspace@=\muskip17
 \c@parentequation=\count321
 \dspbrk@lvl=\count322
-\tag@help=\toks23
+\tag@help=\toks25
 \row@=\count323
 \column@=\count324
 \maxfields@=\count325
-\andhelp@=\toks24
+\andhelp@=\toks26
 \eqnshift@=\dimen176
 \alignsep@=\dimen177
 \tagshift@=\dimen178
 \tagwidth@=\dimen179
 \totwidth@=\dimen180
 \lineht@=\dimen181
-\@envbody=\toks25
+\@envbody=\toks27
 \multlinegap=\skip54
 \multlinetaggap=\skip55
-\mathdisplay@stack=\toks26
+\mathdisplay@stack=\toks28
 LaTeX Info: Redefining \[ on input line 2950.
 LaTeX Info: Redefining \] on input line 2951.
 ) (/usr/local/texlive/2026/texmf-dist/tex/latex/amsfonts/amssymb.sty
@@ -268,15 +438,15 @@ nment
 (/usr/local/texlive/2026/texmf-dist/tex/latex/float/float.sty
 Package: float 2001/11/08 v1.3d Float enhancements (AL)
 \c@float@type=\count326
-\float@exts=\toks27
+\float@exts=\toks29
 \float@box=\box103
-\@float@everytoks=\toks28
+\@float@everytoks=\toks30
 \@floatcapt=\box104
 )
 (/usr/local/texlive/2026/texmf-dist/tex/latex/base/ifthen.sty
 Package: ifthen 2024/03/16 v1.1e Standard LaTeX ifthen package (DPC)
 )
-\@float@every@algorithm=\toks29
+\@float@every@algorithm=\toks31
 \c@algorithm=\count327
 )
 (/usr/local/texlive/2026/texmf-dist/tex/latex/algorithmicx/algpseudocode.sty
@@ -329,7 +499,7 @@ Package: multirow 2024/11/12 v2.9 Span multiple rows of a table
 Package: enumitem 2025/02/06 v3.11 Customized lists
 \labelindent=\skip61
 \enit@outerparindent=\dimen196
-\enit@toks=\toks30
+\enit@toks=\toks32
 \enit@inbox=\box105
 \enit@count@id=\count340
 \enitdp@description=\count341
@@ -485,7 +655,7 @@ Package xcolor Info: Model `wave' substituted by `hsb' on input line 1372.
 (/usr/local/texlive/2026/texmf-dist/tex/latex/pgf/utilities/pgfrcs.sty
 (/usr/local/texlive/2026/texmf-dist/tex/generic/pgf/utilities/pgfutil-common.te
 x
-\pgfutil@everybye=\toks31
+\pgfutil@everybye=\toks33
 \pgfutil@tempdima=\dimen257
 \pgfutil@tempdimb=\dimen258
 )
@@ -502,12 +672,12 @@ Package: pgf 2025-08-29 v3.1.11a (3.1.11a)
 (/usr/local/texlive/2026/texmf-dist/tex/generic/pgf/systemlayer/pgfsys.code.tex
 Package: pgfsys 2025-08-29 v3.1.11a (3.1.11a)
 (/usr/local/texlive/2026/texmf-dist/tex/generic/pgf/utilities/pgfkeys.code.tex
-\pgfkeys@pathtoks=\toks32
-\pgfkeys@temptoks=\toks33
+\pgfkeys@pathtoks=\toks34
+\pgfkeys@temptoks=\toks35
 
 (/usr/local/texlive/2026/texmf-dist/tex/generic/pgf/utilities/pgfkeyslibraryfil
 tered.code.tex
-\pgfkeys@tmptoks=\toks34
+\pgfkeys@tmptoks=\toks36
 ))
 \pgf@x=\dimen259
 \pgf@y=\dimen260
@@ -525,9 +695,9 @@ tered.code.tex
 \c@pgf@countb=\count355
 \c@pgf@countc=\count356
 \c@pgf@countd=\count357
-\t@pgf@toka=\toks35
-\t@pgf@tokb=\toks36
-\t@pgf@tokc=\toks37
+\t@pgf@toka=\toks37
+\t@pgf@tokb=\toks38
+\t@pgf@tokc=\toks39
 \pgf@sys@id@count=\count358
 
 (/usr/local/texlive/2026/texmf-dist/tex/generic/pgf/systemlayer/pgf.cfg
@@ -561,9 +731,9 @@ Package: pgfcore 2025-08-29 v3.1.11a (3.1.11a)
 \pgfmath@dimen=\dimen269
 \pgfmath@count=\count361
 \pgfmath@box=\box107
-\pgfmath@toks=\toks38
-\pgfmath@stack@operand=\toks39
-\pgfmath@stack@operation=\toks40
+\pgfmath@toks=\toks40
+\pgfmath@stack@operand=\toks41
+\pgfmath@stack@operation=\toks42
 )
 (/usr/local/texlive/2026/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.code.
 tex)
@@ -714,8 +884,8 @@ Package: pgfcomp-version-1-18 2025-08-29 v3.1.11a (3.1.11a)
 Package: pgffor 2025-08-29 v3.1.11a (3.1.11a)
 \pgffor@iter=\dimen296
 \pgffor@skip=\dimen297
-\pgffor@stack=\toks41
-\pgffor@toks=\toks42
+\pgffor@stack=\toks43
+\pgffor@toks=\toks44
 ))
 (/usr/local/texlive/2026/texmf-dist/tex/generic/pgf/frontendlayer/tikz/tikz.cod
 e.tex
@@ -786,9 +956,9 @@ File: tikzlibrarycalc.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 Package: pgfplots 2025/08/14 v1.18.2 Data Visualization (1.18.2)
 (/usr/local/texlive/2026/texmf-dist/tex/generic/pgfplots/pgfplots.code.tex
 (/usr/local/texlive/2026/texmf-dist/tex/generic/pgfplots/pgfplotscore.code.tex
-\t@pgfplots@toka=\toks43
-\t@pgfplots@tokb=\toks44
-\t@pgfplots@tokc=\toks45
+\t@pgfplots@toka=\toks45
+\t@pgfplots@tokb=\toks46
+\t@pgfplots@tokc=\toks47
 \pgfplots@tmpa=\dimen311
 \c@pgfplots@coordindex=\count375
 \c@pgfplots@scanlineindex=\count376
@@ -818,7 +988,7 @@ matrix.code.tex)
 (/usr/local/texlive/2026/texmf-dist/tex/generic/pgfplots/numtable/pgfplotstable
 shared.code.tex
 \c@pgfplotstable@counta=\count378
-\t@pgfplotstable@a=\toks46
+\t@pgfplotstable@a=\toks48
 )
 (/usr/local/texlive/2026/texmf-dist/tex/generic/pgfplots/liststructure/pgfplots
 deque.code.tex)
@@ -906,24 +1076,26 @@ File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
 (./main.aux)
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 26.
-LaTeX Font Info:    ... okay on input line 26.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for T5/cmr/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 27.
+LaTeX Font Info:    ... okay on input line 27.
 
 (/usr/local/texlive/2026/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
@@ -932,12 +1104,12 @@ LaTeX Font Info:    ... okay on input line 26.
 \scratchbox=\box118
 \nofMPsegments=\count384
 \nofMParguments=\count385
-\everyMPshowfont=\toks47
+\everyMPshowfont=\toks49
 \MPscratchCnt=\count386
 \MPscratchDim=\dimen326
 \MPnumerator=\count387
 \makeMPintoPDFobject=\count388
-\everyMPtoPDFconversion=\toks48
+\everyMPtoPDFconversion=\toks50
 ) (/usr/local/texlive/2026/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
 Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
@@ -947,7 +1119,7 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
-Package hyperref Info: Link coloring OFF on input line 26.
+Package hyperref Info: Link coloring OFF on input line 27.
 
 (./main.out) (./main.out)
 \@outlinefile=\write4
@@ -957,199 +1129,180 @@ Package hyperref Info: Link coloring OFF on input line 26.
 Package pgfplots notification 'compat/show suggested version=true': document ha
 s been generated with the most recent feature set (\pgfplotsset{compat=1.18}).
 
-LaTeX Font Info:    Trying to load font information for U+msa on input line 39.
+[1{/usr/local/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
+
+]
+LaTeX Font Info:    Trying to load font information for U+msa on input line 40.
+
 
 (/usr/local/texlive/2026/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 39.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 40.
 
 
 (/usr/local/texlive/2026/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
+) (./1/1.tex
+[2{/usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc
+}]) (./2/2.tex [3] (./2/2.1.tex
+LaTeX Font Info:    Trying to load font information for T5+cmss on input line 1
+3.
+
+(/usr/local/texlive/2026/texmf-dist/tex/latex/vntex/t5cmss.fd
+File: t5cmss.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+) [4]
+Overfull \hbox (5.55545pt too wide) in paragraph at lines 17--18
+[]\T5/cmr/m/n/10 Sau khi
+ []
+
+) (./2/2.2.tex [5]
+LaTeX Font Info:    Trying to load font information for T5+cmtt on input line 1
+3.
+
+(/usr/local/texlive/2026/texmf-dist/tex/latex/vntex/t5cmtt.fd
+File: t5cmtt.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
-Overfull \hbox (10.8257pt too wide) in paragraph at lines 43--44
-\T1/cmr/bx/n/9 Keywords:\T1/cmr/m/n/9 Intrusion De-tec-tion Sys-tem \TS1/cmr/m/
-n/9 · \T1/cmr/m/n/9 Ma-chine Learn-ing \TS1/cmr/m/n/9 · \T1/cmr/m/n/9 CIC-IDS20
-17
- []
-
-(./1/1.tex [1
-
-{/usr/local/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/usr/loc
-al/texlive/2026/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc}{/usr/local
-/texlive/2026/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
-Overfull \hbox (1.21918pt too wide) in paragraph at lines 8--9
-\T1/cmr/m/n/10 match traf-fic against a cu-rated rule database (e.g., Snort, Su
-ri-cata), and \T1/cmr/m/it/10 anomaly-
+Overfull \hbox (17.8816pt too wide) in paragraph at lines 13--14
+[]\T5/cmtt/m/n/10 Flow Duration\T5/cmr/m/n/10 , \T5/cmtt/m/n/10 Flow Bytes/s\T5
+/cmr/m/n/10 ,
  []
 
 
-Overfull \hbox (3.26727pt too wide) in paragraph at lines 14--15
-\T1/cmr/m/n/10 iden-ti-fy-ing the sys-tem-atic fail-ure modes (Web At-tack con-
-fu-sion, Rare_Attack
+Overfull \hbox (24.06357pt too wide) in paragraph at lines 13--14
+\T5/cmtt/m/n/10 Flow Packets/s\T5/cmr/m/n/10 , \T5/cmtt/m/n/10 Total Fwd/Bwd Pa
+ckets\T5/cmr/m/n/10 , \T5/cmtt/m/n/10 Total Length of Fwd/Bwd Packets\T5/cmr/m/
+n/10 .
  []
 
 
-Overfull \hbox (9.60315pt too wide) in paragraph at lines 18--19
-[]\T1/cmr/m/n/10 Our head-line re-sult is that \T1/cmr/bx/n/10 Light-GBM with P
-ro-por-tional SMOTE \T1/cmr/m/n/10 achieves
- []
-
-) (./2/2.tex [2] (./2/2.1.tex
-Overfull \hbox (24.02455pt too wide) in paragraph at lines 14--15
-[]\T1/cmr/m/n/10 Volumetric
- []
-
-[3]) (./2/2.2.tex
-Overfull \hbox (9.44751pt too wide) in paragraph at lines 7--8
-[]\T1/cmr/m/n/10 The raw PCAP cap-tures were pro-cessed with the \T1/cmr/m/sc/1
-0 CI-CFlowMe-ter \T1/cmr/m/n/10 toolkit [[]],
+Overfull \hbox (19.93388pt too wide) in paragraph at lines 14--15
+[]\T5/cmtt/m/n/10 Fwd/Bwd Packet Length Min, Max, Mean, Std\T5/cmr/m/n/10 ,
  []
 
 
-Overfull \hbox (16.61803pt too wide) in paragraph at lines 13--14
-[]\T1/cmtt/m/n/10 Flow Duration\T1/cmr/m/n/10 , \T1/cmtt/m/n/10 Flow Bytes/s\T1
-/cmr/m/n/10 , \T1/cmtt/m/n/10 Flow Packets/s\T1/cmr/m/n/10 , \T1/cmtt/m/n/10 To
-tal
+Overfull \hbox (31.00896pt too wide) in paragraph at lines 15--16
+[]\T5/cmtt/m/n/10 Flow IAT Mean/Std/Max/Min\T5/cmr/m/n/10 ,
  []
 
 
-Overfull \hbox (16.04456pt too wide) in paragraph at lines 14--15
-[]\T1/cmtt/m/n/10 Fwd/Bwd Packet Length Min, Max, Mean, Std\T1/cmr/m/n/10 , \T1
-/cmtt/m/n/10 Packet
+Overfull \hbox (13.56613pt too wide) in paragraph at lines 15--16
+\T5/cmtt/m/n/10 Fwd IAT Total/Mean/Std\T5/cmr/m/n/10 , \T5/cmtt/m/n/10 Bwd IAT 
+Total/Mean/Std\T5/cmr/m/n/10 , \T5/cmtt/m/n/10 Active/Idle Mean/Std\T5/cmr/m/n/
+10 .
  []
 
 
-Overfull \hbox (1.18027pt too wide) in paragraph at lines 14--15
-\T1/cmtt/m/n/10 Length Variance\T1/cmr/m/n/10 , \T1/cmtt/m/n/10 Min/Max Packet 
-Length\T1/cmr/m/n/10 . Dis-tri-bu-tions of packet sizes dis-
- []
-
-[4]
-Overfull \hbox (40.48581pt too wide) in paragraph at lines 15--16
-[]\T1/cmtt/m/n/10 Flow IAT Mean/Std/Max/Min\T1/cmr/m/n/10 , \T1/cmtt/m/n/10 Fwd
- IAT Total/Mean/Std\T1/cmr/m/n/10 ,
- []
-
-
-Overfull \hbox (22.80263pt too wide) in paragraph at lines 16--17
-[]\T1/cmtt/m/n/10 SYN/ACK/FIN/RST/PSH/URG Flag Count\T1/cmr/m/n/10 , \T1/cmtt/m
+Overfull \hbox (20.8781pt too wide) in paragraph at lines 16--17
+[]\T5/cmtt/m/n/10 SYN/ACK/FIN/RST/PSH/URG Flag Count\T5/cmr/m/n/10 , \T5/cmtt/m
 /n/10 Fwd/Bwd
  []
 
-) (./2/2.3.tex [5]
-Overfull \hbox (24.37447pt too wide) in paragraph at lines 16--17
-[]\T1/cmr/m/n/10 All mod-els are trained with \T1/cmtt/m/n/10 class_weight='bal
-anced'\T1/cmr/m/n/10 ,
+) (./2/2.3.tex [6]
+Overfull \hbox (6.1928pt too wide) in paragraph at lines 16--17
+[]\T5/cmr/m/n/10 T§t c£ c¡c mæ
  []
 
-) (./2/2.4.tex [6])) (./3/3.tex (./3/3.1.tex [7]) (./3/3.2.tex
-Overfull \hbox (80.82349pt too wide) in paragraph at lines 24--25
+[7]) (./2/2.4.tex
+Overfull \hbox (14.74765pt too wide) in paragraph at lines 9--10
+[] \T5/cmr/m/n/10 [[]] l  mët frame-work t«ng c÷íng gra-di-ent düa tr¶n biºu ^^
+_ç (histogram-
+ []
+
+)) (./3/3.tex [8] (./3/3.1.tex [9]) (./3/3.2.tex
+Overfull \hbox (110.6355pt too wide) in paragraph at lines 24--25
  [][] 
  []
 
-[8]) (./3/3.3.tex
-Overfull \hbox (29.17346pt too wide) in paragraph at lines 4--5
-\T1/cmr/m/n/10 per-i-ments. Drop-ping the flow-identifier meta-data columns (\T
-1/cmtt/m/n/10 Flow ID\T1/cmr/m/n/10 , source/destination
+) [10] (./3/3.3.tex) (./3/3.4.tex
+Overfull \hbox (0.9441pt too wide) in paragraph at lines 7--8
+\T5/cmtt/m/n/10 n_estimators\T5/cmr/m/n/10 =200, \T5/cmtt/m/n/10 max_features\T
+5/cmr/m/n/10 =$[]$, \T5/cmtt/m/n/10 class_weight\T5/cmr/m/n/10 =\T5/cmtt/m/n/10
+ balanced_subsample\T5/cmr/m/n/10 ,
  []
 
 
-Overfull \hbox (24.42352pt too wide) in paragraph at lines 4--5
-\T1/cmr/m/n/10 counts), packet-size statis-tics (min/max/mean/std), inter-arriv
-al times (IAT mean/std
+Overfull \hbox (13.96324pt too wide) in paragraph at lines 10--11
+ []\T5/cmr/bx/n/10 XGBoost. \T5/cmtt/m/n/10 XGBClassifier \T5/cmr/m/n/10 vîi \T
+5/cmtt/m/n/10 objective\T5/cmr/m/n/10 =\T5/cmtt/m/n/10 multi:softprob\T5/cmr/m/
+n/10 , \T5/cmtt/m/n/10 n_estimators\T5/cmr/m/n/10 =500,
  []
 
-) (./3/3.4.tex
-Overfull \hbox (43.17833pt too wide) in paragraph at lines 7--8
- []\T1/cmr/bx/n/10 Random For-est (RF). \T1/cmr/m/n/10 Scikit-learn \T1/cmtt/m/
-n/10 RandomForestClassifier \T1/cmr/m/n/10 with \T1/cmtt/m/n/10 n_estimators\T1
-/cmr/m/n/10 =200,
- []
-
-
-Overfull \hbox (3.49904pt too wide) in paragraph at lines 7--8
-\T1/cmtt/m/n/10 max_features\T1/cmr/m/n/10 =$[]$, \T1/cmtt/m/n/10 class_weight\
-T1/cmr/m/n/10 =\T1/cmtt/m/n/10 balanced_subsample\T1/cmr/m/n/10 , un-lim-ited d
-epth. The
- []
-
-[9]
-Overfull \hbox (20.62828pt too wide) in paragraph at lines 10--11
- []\T1/cmr/bx/n/10 XGBoost. \T1/cmtt/m/n/10 XGBClassifier \T1/cmr/m/n/10 with \
-T1/cmtt/m/n/10 objective\T1/cmr/m/n/10 =\T1/cmtt/m/n/10 multi:softprob\T1/cmr/m
-/n/10 , \T1/cmtt/m/n/10 n_estimators\T1/cmr/m/n/10 =500,
+[11]
+Overfull \hbox (52.62602pt too wide) in paragraph at lines 13--14
+ []\T5/cmr/bx/n/10 LightGBM. \T5/cmtt/m/n/10 LGBMClassifier \T5/cmr/m/n/10 vîi 
+\T5/cmtt/m/n/10 n_estimators\T5/cmr/m/n/10 =500, \T5/cmtt/m/n/10 max_depth\T5/c
+mr/m/n/10 =8, \T5/cmtt/m/n/10 learning_rate\T5/cmr/m/n/10 =0.1,
  []
 
 
-Overfull \hbox (59.29106pt too wide) in paragraph at lines 13--14
- []\T1/cmr/bx/n/10 LightGBM. \T1/cmtt/m/n/10 LGBMClassifier \T1/cmr/m/n/10 with
- \T1/cmtt/m/n/10 n_estimators\T1/cmr/m/n/10 =500, \T1/cmtt/m/n/10 max_depth\T1/
-cmr/m/n/10 =8, \T1/cmtt/m/n/10 learning_rate\T1/cmr/m/n/10 =0.1,
+Overfull \hbox (52.15396pt too wide) in paragraph at lines 16--17
+\T5/cmr/m/n/10 cõa scikit-learn vîi ^^_ë s¥u khæng giîi h¤n, ti¶u ch½ t¤p ch§t 
+Gini v  \T5/cmtt/m/n/10 class_weight\T5/cmr/m/n/10 =\T5/cmtt/m/n/10 balanced\T5
+/cmr/m/n/10 .
  []
 
-) (./3/3.5.tex
-Overfull \hbox (53.40086pt too wide) in paragraph at lines 14--15
-[]\T1/cmr/bx/n/10 Train\T1/cmr/m/n/10 : fit all four clas-si-fiers on the aug-m
-ented train-ing set with \T1/cmtt/m/n/10 class_weight=balanced\T1/cmr/m/n/10 . 
-
+) (./3/3.5.tex [12]) (./3/3.6.tex)) (./4/4.tex (./4/4.1.tex [13]
+Overfull \hbox (37.61153pt too wide) in paragraph at lines 31--44
+ [][] 
  []
 
-[10]) (./3/3.6.tex)) (./4/4.tex (./4/4.1.tex [11]
+
 Overfull \hbox (27.06287pt too wide) in paragraph at lines 47--48
-\T1/cmtt/m/n/10 Slowhttptest\T1/cmr/m/n/10 , \T1/cmtt/m/n/10 DoS slowloris\T1/c
-mr/m/n/10 , \T1/cmtt/m/n/10 FTP-Patator\T1/cmr/m/n/10 , \T1/cmtt/m/n/10 PortSca
-n\T1/cmr/m/n/10 , \T1/cmtt/m/n/10 Rare_Attack\T1/cmr/m/n/10 , \T1/cmtt/m/n/10 S
-SH-Patator\T1/cmr/m/n/10 ,
+\T5/cmtt/m/n/10 Slowhttptest\T5/cmr/m/n/10 , \T5/cmtt/m/n/10 DoS slowloris\T5/c
+mr/m/n/10 , \T5/cmtt/m/n/10 FTP-Patator\T5/cmr/m/n/10 , \T5/cmtt/m/n/10 PortSca
+n\T5/cmr/m/n/10 , \T5/cmtt/m/n/10 Rare_Attack\T5/cmr/m/n/10 , \T5/cmtt/m/n/10 S
+SH-Patator\T5/cmr/m/n/10 ,
  []
 
 )
-Overfull \hbox (44.71024pt too wide) in paragraph at lines 61--16
-\T1/cmr/m/n/10 SMOTE, ex-cept Light-GBM which han-dles class weights in-ter-nal
-ly via \T1/cmtt/m/n/10 is_unbalance=True\T1/cmr/m/n/10 .
+Overfull \hbox (26.52023pt too wide) in paragraph at lines 62--16
+\T5/cmr/m/n/10 SMOTE, ngo¤i trø Light-GBM xû lþ trång sè lîp nëi bë thæng qua \
+T5/cmtt/m/n/10 is_unbalance=True\T5/cmr/m/n/10 .
  []
 
-(./4/4.2.tex [12]
-Overfull \hbox (6.77737pt too wide) in paragraph at lines 11--12
-[]\T1/cmr/m/n/10 mean per-class re-call; use-ful when com-par-ing mod-els acros
-s
+(./4/4.2.tex [14]
+Overfull \hbox (4.92366pt too wide) in paragraph at lines 11--12
+[]\T5/cmr/m/n/10 gi¡ trà re-call trung b¼nh theo
  []
 
 ) (./4/4.3.tex
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[13]) (./4/4.4.tex
-Overfull \hbox (57.98177pt too wide) in paragraph at lines 10--32
- [][] 
- []
-
-[14]) (./4/4.5.tex
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-[15]) (./4/4.6.tex
-Overfull \hbox (2.30255pt too wide) in paragraph at lines 10--20
+Overfull \hbox (24.66025pt too wide) in paragraph at lines 26--36
  [][] 
  []
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-) (./4/4.7.tex [16]
-Overfull \hbox (2.5122pt too wide) in paragraph at lines 8--9
-\T1/cmr/m/n/10 (low-volume ex-fil-tra-tion bea-con-ing), \T1/cmtt/m/n/10 SQL In
-jection \T1/cmr/m/n/10 (HTTP POST-heavy flows),
+[15]) (./4/4.4.tex
+Overfull \hbox (58.96373pt too wide) in paragraph at lines 10--32
+ [][] 
  []
 
-)) (./5/5.tex [17] (./5/5.1.tex)) (./6/6.tex
-Overfull \hbox (2.5133pt too wide) in paragraph at lines 6--7
-\T1/cmr/m/n/10 Ran-dom For-est, and De-ci-sion Tree---under two class-imbalance
- treat-ment regimes
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[16]
+Overfull \hbox (12.4761pt too wide) in paragraph at lines 41--42
+ []\T5/cmr/bx/n/10 Rare_Attack. \T5/cmr/m/n/10 Lîp gi£ gëp n y (\T5/cmtt/m/n/10
+ Infiltration \T5/cmr/m/n/10 + \T5/cmtt/m/n/10 SQL Injection \T5/cmr/m/n/10 + \
+T5/cmtt/m/n/10 Heartbleed\T5/cmr/m/n/10 )
  []
 
-[18]) [19] [20] [21
+) (./4/4.5.tex
+Overfull \hbox (47.72607pt too wide) in paragraph at lines 7--8
+\T5/cmr/m/n/10 Macro-$\OML/cmm/m/it/10 F[]$ \T5/cmr/m/n/10 khi Pro-por-tional S
+MOTE ^^_÷ñc th¶m v o düa tr¶n cì sð \T5/cmtt/m/n/10 class_weight=balanced\T5/cm
+r/m/n/10 . 
+ []
+
+[17]) (./4/4.6.tex [18]
+Overfull \hbox (74.45721pt too wide) in paragraph at lines 10--20
+ [][] 
+ []
+
+) (./4/4.7.tex [19])) (./5/5.tex (./5/5.1.tex [20])) (./6/6.tex [21]) [22]
+[23
 
 ] (./main.aux)
  ***********
@@ -1157,16 +1310,16 @@ LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
  ***********
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 72BAA450F2D3A12A75C4FF4576A82D78;741.
+(rerunfilecheck)             Checksum: AA76AC6E784995CC7E95F8A9D72E2B52;119.
  ) 
 Here is how much of TeX's memory you used:
- 33268 strings out of 467525
- 767155 string characters out of 5418983
- 1330820 words of memory out of 5000000
- 61428 multiletter control sequences out of 15000+600000
- 648131 words of font info for 89 fonts, out of 8000000 for 9000
+ 33745 strings out of 467525
+ 773699 string characters out of 5418983
+ 1332436 words of memory out of 5000000
+ 61888 multiletter control sequences out of 15000+600000
+ 650987 words of font info for 89 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 84i,10n,94p,1517b,813s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 84i,10n,94p,2092b,813s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx7.pfb><
 /usr/local/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></
@@ -1187,23 +1340,22 @@ mf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/texlive/2026/texmf
 -dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/local/texlive/2026/t
 exmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/local/texlive/20
 26/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm7.pfb></usr/local/texlive
-/2026/texmf-dist/fonts/type1/public/cm-super/sfbx0900.pfb></usr/local/texlive/2
-026/texmf-dist/fonts/type1/public/cm-super/sfbx1000.pfb></usr/local/texlive/202
-6/texmf-dist/fonts/type1/public/cm-super/sfbx1200.pfb></usr/local/texlive/2026/
-texmf-dist/fonts/type1/public/cm-super/sfbx1440.pfb></usr/local/texlive/2026/te
-xmf-dist/fonts/type1/public/cm-super/sfcc1000.pfb></usr/local/texlive/2026/texm
-f-dist/fonts/type1/public/cm-super/sfrm0700.pfb></usr/local/texlive/2026/texmf-
-dist/fonts/type1/public/cm-super/sfrm0900.pfb></usr/local/texlive/2026/texmf-di
-st/fonts/type1/public/cm-super/sfrm1000.pfb></usr/local/texlive/2026/texmf-dist
-/fonts/type1/public/cm-super/sfss1000.pfb></usr/local/texlive/2026/texmf-dist/f
-onts/type1/public/cm-super/sfti0900.pfb></usr/local/texlive/2026/texmf-dist/fon
-ts/type1/public/cm-super/sfti1000.pfb></usr/local/texlive/2026/texmf-dist/fonts
-/type1/public/cm-super/sftt0900.pfb></usr/local/texlive/2026/texmf-dist/fonts/t
-ype1/public/cm-super/sftt1000.pfb>
-Output written on main.pdf (21 pages, 535943 bytes).
+/2026/texmf-dist/fonts/type1/public/cm-super/sfrm0900.pfb></usr/local/texlive/2
+026/texmf-dist/fonts/type1/vntex/vnr/vnbx10.pfb></usr/local/texlive/2026/texmf-
+dist/fonts/type1/vntex/vnr/vnbx12.pfb></usr/local/texlive/2026/texmf-dist/fonts
+/type1/vntex/vnr/vnbx9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/vnte
+x/vnr/vncsc10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/vntex/vnr/vnr
+10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/vntex/vnr/vnr7.pfb></usr
+/local/texlive/2026/texmf-dist/fonts/type1/vntex/vnr/vnr9.pfb></usr/local/texli
+ve/2026/texmf-dist/fonts/type1/vntex/vnr/vnss10.pfb></usr/local/texlive/2026/te
+xmf-dist/fonts/type1/vntex/vnr/vnti10.pfb></usr/local/texlive/2026/texmf-dist/f
+onts/type1/vntex/vnr/vnti9.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/
+vntex/vnr/vntt10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/vntex/vnr/
+vntt9.pfb>
+Output written on main.pdf (23 pages, 433998 bytes).
 PDF statistics:
- 489 PDF objects out of 1000 (max. 8388607)
- 378 compressed objects within 4 object streams
- 134 named destinations out of 1000 (max. 500000)
+ 493 PDF objects out of 1000 (max. 8388607)
+ 381 compressed objects within 4 object streams
+ 136 named destinations out of 1000 (max. 500000)
  21 words of extra memory for PDF output out of 10000 (max. 10000000)
 

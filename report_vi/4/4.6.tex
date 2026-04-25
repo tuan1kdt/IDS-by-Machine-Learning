@@ -1,0 +1,24 @@
+\subsection{Đặc tính Thời gian chạy}
+\label{sec:exp-latency}
+
+Bảng~\ref{tab:runtime} tóm tắt thời gian huấn luyện và độ trễ suy luận ước tính cho mỗi Flow đối với từng mô hình, được đo trên runtime Colab CPU.
+
+\begin{table}[h]
+\centering
+\caption{Thời gian huấn luyện và chi phí suy luận của mỗi mô hình.}
+\label{tab:runtime}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Mô hình} & \textbf{T/g huấn luyện (s)} & \textbf{Kích thước tuần tự hóa (MB)} & \textbf{Suy luận theo lô (Flow/s)}  \\
+\midrule
+LightGBM      & 212 & $\approx$ 5   & $> 50{.}000$  \\
+XGBoost       & 157 & $\approx$ 8   & $> 40{.}000$  \\
+Random Forest &  62 & $\approx$ 150 & $> 30{.}000$  \\
+Decision Tree &   7 & $<$ 1         & $> 200{.}000$  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent Tất cả các mô hình dựa trên cây đều dễ dàng thỏa mãn mục tiêu thông lượng $10^4$ Flow mỗi giây và ngân sách bộ nhớ $< 512$ MB được định nghĩa ở Phần~\ref{sec:problem-statement}. Mô hình tuần tự hóa của Random Forest là nặng nhất ở mức $\approx 150$ MB (200 cây chiều sâu tối đa), nhưng nó vẫn nằm trong giới hạn ngân sách bộ nhớ. LightGBM và XGBoost đều rất nhỏ gọn ($< 10$ MB), khiến chúng trở thành lựa chọn ưu tiên cho các triển khai bị hạn chế về tài nguyên.
+
+Thời gian huấn luyện của LightGBM (212 s với SMOTE) cao hơn một chút so với XGBoost (157 s) do có thêm chi phí xây dựng biểu đồ cho tập huấn luyện được tăng cường. Tuy nhiên, chi phí này chỉ phát sinh một lần khi hoạt động ngoại tuyến; nó không ảnh hưởng đến ngân sách độ trễ suy luận trực tuyến.

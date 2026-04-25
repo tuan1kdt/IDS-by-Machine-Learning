@@ -1,0 +1,45 @@
+\subsection{Dataset CIC-IDS2017}
+\label{sec:bg-dataset}
+
+\subsubsection*{Tổng quan và Phương pháp thu thập.}
+Dataset \textbf{CIC-IDS2017}, do Viện An ninh Mạng Canada phát hành, được xây dựng đặc biệt để giải quyết các thiếu sót nổi tiếng của các bộ tiêu chuẩn cũ hơn (KDD'99, NSL-KDD) như các bản ghi dư thừa, các vector tấn công lỗi thời và các mẫu lưu lượng phi thực tế~\cite{ref_cicids2017,ref_kdd99}. Nó được thu thập trong \emph{năm ngày làm việc} (Thứ Hai đến Thứ Sáu, ngày 3--7 tháng 7 năm 2017) trên một testbed chuyên dụng bao gồm một mạng nạn nhân có 10 máy chủ chạy Windows, Linux và macOS, và một mạng tấn công có 4 máy chạy các chiến dịch được tạo kịch bản. Lưu lượng nền bình thường được tạo thông qua framework \emph{B-Profile}, lập mô hình hành vi thống kê của người dùng trên các giao thức HTTP, HTTPS, FTP, SSH và email.
+
+Các bản ghi PCAP thô được xử lý bằng bộ công cụ \textsc{CICFlowMeter}~\cite{ref_cicflowmeter}, xuất ra một hàng cho mỗi Flow hai chiều và gắn nhãn cho mỗi Flow với lớp thực tế (ground-truth) bắt nguồn từ lịch trình tấn công. Kho ngữ liệu kết quả chứa khoảng \textbf{2,83 triệu Flow được gắn nhãn}, phân bổ trên một lớp bình thường (benign) và mười bốn lớp tấn công (thường được gộp thành bảy lớp tổng hợp để mô hình hóa).
+
+\subsubsection*{Ngữ nghĩa đặc trưng.}
+CIC-IDS2017 cung cấp \textbf{78 đặc trưng số} cho mỗi Flow (cộng với nhãn). Cho mục đích của báo cáo này, chúng tôi nhóm chúng thành bốn họ có ý nghĩa về mặt ngữ nghĩa:
+
+\begin{description}[leftmargin=1.2em,itemsep=2pt,topsep=2pt]
+    \item[Mô tả cấp độ Flow (Flow-level descriptors).] \texttt{Flow Duration}, \texttt{Flow Bytes/s}, \texttt{Flow Packets/s}, \texttt{Total Fwd/Bwd Packets}, \texttt{Total Length of Fwd/Bwd Packets}. Những yếu tố này nắm bắt quy mô và tốc độ tổng thể của cuộc trao đổi---các giá trị lớn chỉ ra lưu lượng khối lượng lớn như DDoS hoặc truyền tệp; giá trị gần bằng 0 gợi ý các cuộc thăm dò Reconnaissance.
+    \item[Thống kê kích thước Packet.] \texttt{Fwd/Bwd Packet Length Min, Max, Mean, Std}, \texttt{Packet Length Variance}, \texttt{Min/Max Packet Length}. Phân phối của các kích thước Packet dùng để phân biệt, ví dụ, các trận lụt SYN Packet ngắn từ truyền tải khối lượng lớn có Packet dài.
+    \item[Thời gian xuất hiện (Inter-arrival times - IAT).] \texttt{Flow IAT Mean/Std/Max/Min}, \texttt{Fwd IAT Total/Mean/Std}, \texttt{Bwd IAT Total/Mean/Std}, \texttt{Active/Idle Mean/Std}. Các đặc trưng thời gian là tín hiệu mạnh nhất đối với Beacon định kỳ (C2), các vòng lặp brute-force và quét chậm (low-and-slow scans).
+    \item[Số lượng cờ TCP và tiêu đề.] \texttt{SYN/ACK/FIN/RST/PSH/URG Flag Count}, \texttt{Fwd/Bwd PSH/URG Flags}, \texttt{Fwd/Bwd Header Length}. Việc phân phối cờ đặc biệt nhiều thông tin để phát hiện các kết nối mở một nửa (half-open connections), quét (scans) và bắt tay định dạng sai (malformed handshakes).
+\end{description}
+
+\begin{table}[h]
+\centering
+\caption{Phân phối lớp tổng hợp của CIC-IDS2017 (tương đối).}
+\label{tab:class-dist}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Lớp} & \textbf{Số Flow} & \textbf{\%}  \\
+\midrule
+BENIGN                     & 2.273.097 & 80,30  \\
+DDoS                       &   128.027 &  4,52  \\
+PortScan                   &   158.930 &  5,62  \\
+DoS Hulk                   &   231.073 &  8,16  \\
+DoS GoldenEye              &    10.293 &  0,36  \\
+DoS slowloris / Slowhttptest &  11.420 &  0,40  \\
+FTP-Patator / SSH-Patator   &    13.835 &  0,49  \\
+Web Attack (Brute/XSS/SQLi) &     2.180 &  0,08  \\
+Bot                         &     1.966 &  0,07  \\
+Infiltration                &        36 &  0,0013  \\
+Heartbleed                  &        11 &  0,0004  \\
+\midrule
+\textbf{Tổng cộng}          & \textbf{2.830.868} & \textbf{100}  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection*{Số liệu thống kê và Thách thức của Dataset.}
+Bảng~\ref{tab:class-dist} tóm tắt phân phối các lớp. Hai đặc tính chi phối việc thảo luận mô hình hóa. Thứ nhất, Dataset \textbf{mất cân bằng (imbalanced) nghiêm trọng}: chỉ riêng lớp bình thường (benign) đã chiếm $\approx 80\%$ tổng số Flow, trong khi các lớp như \texttt{Heartbleed} và \texttt{Infiltration} chứa ít hơn một trăm mẫu mỗi lớp. Do đó, việc huấn luyện ngây thơ sẽ tạo ra các bộ phân loại mặc định dự đoán \texttt{BENIGN} và đạt được độ chính xác tổng thể cao một cách lừa dối trong khi hoàn toàn thất bại trên các lớp tấn công thiểu số quan trọng nhất. Thứ hai, Feature Set chứa một số ít cột có các giá trị không xác định (\texttt{NaN}, $\pm\infty$) do các trường hợp biên trong trình tính toán Flow tạo ra (ví dụ: chia cho số không đối với các Flow Packet đơn) và một số ít cột có phương sai bằng không phải được loại bỏ. Những vấn đề này thúc đẩy quy trình tiền xử lý được mô tả tiếp theo.
