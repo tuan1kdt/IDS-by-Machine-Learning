@@ -122,6 +122,12 @@ style: |
   section.cols2 ul {
     font-size: 0.78em;
   }
+  section.cols2 .col img {
+    max-width: 100%;
+    max-height: 480px;
+    object-fit: contain;
+    border-radius: 6px;
+  }
   /* Code-like block for packet structure */
   .packet-stack {
     font-family: 'Menlo', 'Consolas', monospace;
@@ -309,17 +315,13 @@ Ton Duc Thang University — 2026
 
 </div>
 
-<div class="col">
+<div class="col" style="text-align: center;">
 
-<div class="packet-stack">
-<div class="layer layer-eth">Ethernet Header (14 B) — MAC src/dst</div>
-<div class="layer layer-ip">IP Header (20 B) — IP src/dst, TTL</div>
-<div class="layer layer-tcp">TCP Header (20 B) — port, flag, seq</div>
-<div class="layer layer-data">Payload — HTTP, TLS, DNS data...</div>
-</div>
+![OSI model](assets/osi-model.jpeg)
 
-<p style="font-size: 0.72em; margin-top: 14px; color: #b0bec5;">
-Một packet HTTP đơn giản có thể chứa <strong>~1500 byte</strong> với 4 lớp header.
+<p style="font-size: 0.65em; margin-top: 6px; color: #b0bec5;">
+Mô hình OSI 7 tầng — mỗi tầng đóng gói thêm header riêng cho packet.
+<br><em>Nguồn: ByteByteGo</em>
 </p>
 
 </div>
